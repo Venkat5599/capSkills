@@ -1,77 +1,169 @@
-# Pulse — the crypto velocity regime Skill
+<div align="center">
 
-> **CoinMarketCap's Fear & Greed measures the crowd's *mood*. Pulse measures the crowd's *speed*.**
-> A CMC AI Agent Hub Skill for **BNB Hack — Track 2: Strategy Skills**.
+# 🫀 Pulse
 
-Mood is a level — it tells you where sentiment *is*, after the fact. **Speed is leading** —
-how fast and how synchronized the whole market reprices *right now*. When dozens of tokens
-move abnormally hard at once, that burst is the crowd panicking (or euphoric). Panic
-overshoots and reverts; euphoria trends. Pulse measures that speed, names the regime, and
-emits a market-neutral strategy.
+### The crypto market has a heartbeat. Pulse reads it.
 
-## The idea in one picture
-`speed_i = |return_i| / its_own_volatility` → average across the basket = **Pulse index**
-(a "crypto VIX"). High Pulse + falling = **PANIC** (fade the overshoot). High Pulse +
-rising = **EUPHORIA** (ride momentum). Low Pulse = **CALM** (stand aside).
+**Fear &amp; Greed tells you the crowd's _mood_. Pulse tells you the crowd's _speed_.**
+Mood is lagging. Speed is leading.
 
-![results](backtest/pulse_results.png)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-pulse--vix.vercel.app-34d399?style=for-the-badge)](https://pulse-vix.vercel.app)
+[![Skill](https://img.shields.io/badge/Install-npx_skills_add-3B82F6?style=for-the-badge)](#-install-in-one-line)
+[![Track 2](https://img.shields.io/badge/BNB_Hack-Track_2_Strategy_Skills-fbbf24?style=for-the-badge)](https://dorahacks.io)
 
-## Why it's new
-CoinMarketCap's official skill library has data, report, and research skills — but **no
-strategy/backtest skill, and nothing that measures repricing *velocity*.** Pulse is a new
-primitive: a *leading* volatility-regime gauge that drives a switchable strategy. F&G is
-the lagging cousin; Pulse is the derivative.
+[![License](https://img.shields.io/badge/license-MIT-black?style=flat-square)](#license)
+[![Data](https://img.shields.io/badge/data-CoinMarketCap_AI_Agent_Hub-blue?style=flat-square)](https://coinmarketcap.com/api/agent)
+[![Backtest](https://img.shields.io/badge/backtest-2.5_years_hourly-success?style=flat-square)](docs/VALIDATION.md)
+[![Crash capture](https://img.shields.io/badge/crash_capture-20%2F20-fb5e6d?style=flat-square)](docs/VALIDATION.md)
 
-## What's in here
+</div>
+
+---
+
+> ### The one-sentence pitch
+> When a cluster of tokens reprices **fast and in sync**, that burst _is_ the crowd capitulating. Pulse measures that speed — a **"crypto VIX"** — names the market regime (`CALM` / `PANIC` / `EUPHORIA`), and turns it into a backtestable strategy. **Built as a CoinMarketCap AI Agent Hub Skill.**
+
+---
+
+## 🧠 Why this is different
+
+Every other signal looks at **where price is**. Pulse looks at **how fast it's moving** — the *second derivative*.
+
+| | Fear &amp; Greed (the standard) | 🫀 **Pulse** (this) |
+|---|---|---|
+| Measures | sentiment **level** | repricing **speed + synchronization** |
+| Nature | **lagging** | **leading** |
+| Output | a number 0–100 | a **regime** + a **strategy** |
+| In CMC's skill library? | ✅ | ❌ **(this fills the gap)** |
+
+CoinMarketCap's official skill repo has data, report, and research skills — but **no strategy skill, and nothing that measures velocity.** Pulse is a new primitive.
+
+---
+
+## 🔥 The proof — it catches every crash
+
+Validated on **2.5 years** of hourly data, 20 liquid CMC-eligible tokens:
+
+<div align="center">
+
+### `20 / 20`
+**Of the 20 worst daily drops, Pulse was in its top decile within 24h. Every single one.**
+
+</div>
+
+| Forward 24h return | by regime | read |
+|---|---|---|
+| after `CALM` | −0.026% | quiet → nothing |
+| after `EUPHORIA` | +0.106% | greed → momentum |
+| after **`PANIC`** | **+0.385%** | **capitulation → the bounce** |
+
+Panic readings are followed by the **best** forward returns — capitulation, then mean-reversion. Forward volatility after panic is **1.3×** the calm level. → [full methodology &amp; numbers](docs/VALIDATION.md)
+
+---
+
+## 🪙 We disclose our own fee math (the honest part)
+
+Most "winning strategy" submissions quietly skip transaction costs. We don't.
+
+- The raw per-trade signal is **real but small** (~0.05% market-neutral at 3h).
+- At realistic BSC round-trip cost (~0.30%), the **high-frequency version loses** — break-even is only **~0.06%**. We keep the failed test (`backtest/backtest.py`) **in the repo on purpose.**
+- ✅ The value is the **regime signal itself** — a *fee-immune capitulation gauge*. Track 2 explicitly asks for **"entry/exit rules OR market regime alerts."** Pulse is the gauge, validated.
+
+> A fragile strategy dressed as a money-printer dies under one judge question. An honest, validated indicator that discloses its own limits earns trust. We chose the second.
+
+---
+
+## 🏗️ How it works
+
+```mermaid
+flowchart LR
+    A[CoinMarketCap<br/>quotes + Fear&Greed] --> B[Velocity engine<br/>speed = move / own vol]
+    B --> C[Pulse index<br/>the crypto VIX]
+    C --> D{Regime}
+    D -->|low velocity| E[CALM → flat]
+    D -->|fast + falling| F[PANIC → fade oversold]
+    D -->|fast + rising| G[EUPHORIA → momentum]
+    F --> H[Conviction layer<br/>+ CMC Fear&Greed]
+    G --> H
+    H --> I[Signal JSON<br/>regime · picks · conviction]
 ```
-SKILL.md                  # the LLM Skill (CMC AI Agent Hub format) — the deliverable
-scripts/
-  data_fetch.py           # historical OHLCV (Binance free klines for backtest)
-  velocity.py             # the Pulse index
-  regime.py               # CALM / PANIC / EUPHORIA classifier
-  signals.py              # entry/exit/sizing rules
-  cmc_live.py             # live signal from CoinMarketCap AI Agent Hub
-backtest/
-  backtest.py             # v1 naive test — FAILS (kept for honesty)
-  backtest2.py            # v2 market-neutral test — edge found
-  backtest_fees.py        # fee-survival test (HF version loses — disclosed)
-  backtest_extreme.py     # extreme-event sweep
-  validate_indicator.py   # the core proof: 20/20 crash capture
-  make_results.py / export_web_data.py
-  results.md              # consolidated results
-  validation_results.png  # the money chart
+
+**The math** (per token `i`, hourly):
 ```
+speed_i  = |log_return_i| / rolling_std_i        # z-scored move size
+Pulse    = mean_i speed_i                          # the crypto VIX
+regime   = CALM | PANIC (fast+falling) | EUPHORIA (fast+rising)
+```
+→ [architecture deep-dive](docs/ARCHITECTURE.md)
 
-## Validation (2.5y hourly, 20 liquid CMC-eligible tokens)
-| Result | Value |
-|---|---|
-| **Crash capture** | **20/20** of the worst daily drops had Pulse in its top decile within 24h |
-| Forward 24h after PANIC | **+0.385%** (capitulation bounce — the contrarian edge) |
-| Forward 24h after CALM | −0.026% |
-| Forward 24h after EUPHORIA | +0.106% |
-| Forward vol after PANIC | 1.3× the calm level (flags turbulence) |
+---
 
-**Honest scope (we disclose this openly):** the per-trade signal is real but small
-(~0.05% market-neutral at 3h). At realistic BSC round-trip cost (~0.30%) the
-**high-frequency version loses** (break-even ~0.06%) — see `backtest/backtest_fees.py`,
-and the failed naive test in `backtest/backtest.py`. The value is the **regime signal**:
-a fee-immune capitulation gauge. Track 2 explicitly asks for "entry/exit rules **or
-market regime alerts**" — Pulse is the latter, validated. This is a *backtestable
-strategy spec + indicator*, not a profitable HFT bot.
+## ⚡ Install in one line
 
-## Run it
 ```bash
+npx skills add https://github.com/Venkat5599/capSkills -y
+```
+Installs the `pulse-velocity-regime` skill into Claude Code, Cursor, Codex, Gemini CLI + 12 more.
+
+**Run the live signal:**
+```bash
+export CMC_API_KEY=your_key            # free at pro.coinmarketcap.com
 pip install -r requirements.txt
-python scripts/data_fetch.py     # pull data (free, no key)
-python scripts/velocity.py       # Pulse index + regimes
-python backtest/backtest2.py     # validate the edge
-python backtest/make_results.py  # equity curve + chart
+python scripts/cmc_live.py
+```
+```jsonc
+{ "regime": "PANIC", "action": "FADE_LONG",
+  "picks": ["INJ","FET","LDO","AAVE","DOT"],
+  "fear_greed": 18,
+  "conviction": { "grade": "HIGH", "reason": "velocity panic + extreme fear agree" } }
 ```
 
-## Live data
-The backtest uses Binance free klines (CMC's free tier paywalls historical OHLCV).
-The live Skill reads **CoinMarketCap AI Agent Hub** (quotes, Fear & Greed, derivatives,
-trending) — identical strategy logic. See `SKILL.md`.
+**Or just ask your agent:** _"What's the crypto market regime right now?"_
 
-## License
-MIT.
+---
+
+## 📂 What's inside
+
+```
+pulse/
+├── SKILL.md                  # ⭐ the CMC AI Agent Hub Skill (the deliverable)
+├── scripts/
+│   ├── velocity.py           # the Pulse index
+│   ├── regime.py             # CALM / PANIC / EUPHORIA classifier
+│   ├── signals.py            # entry / exit / sizing rules
+│   ├── sentiment.py          # conviction layer (regime + Fear & Greed)
+│   ├── cmc_live.py           # live signal from CoinMarketCap
+│   └── data_fetch.py         # historical OHLCV (free, no key)
+├── backtest/
+│   ├── validate_indicator.py # ⭐ 20/20 crash-capture proof
+│   ├── backtest.py           # naive test — FAILS (kept for honesty)
+│   ├── backtest_fees.py      # fee-survival disclosure
+│   ├── backtest2.py / backtest_extreme.py / overlay.py
+│   └── results.md            # consolidated numbers
+├── site/                     # the live Vercel demo
+└── docs/                     # 📚 methodology, architecture, validation, judges' map
+```
+
+---
+
+## 📚 Docs
+
+| Doc | What |
+|---|---|
+| [docs/METHODOLOGY.md](docs/METHODOLOGY.md) | The thesis: why speed leads mood |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The system, the math, the data flow |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | Every number, every test, honestly |
+| [docs/JUDGES.md](docs/JUDGES.md) | Mapped to the 4 Track-2 criteria |
+| [docs/FAQ.md](docs/FAQ.md) | The hard questions, answered |
+
+---
+
+<div align="center">
+
+**Built for BNB Hack: AI Trading Agent Edition** · CoinMarketCap × Trust Wallet × BNB Chain
+🫀 [Live demo](https://pulse-vix.vercel.app) · 📦 [Install](#-install-in-one-line) · 📚 [Docs](docs/)
+
+### License
+MIT — see [LICENSE](LICENSE).
+
+</div>
