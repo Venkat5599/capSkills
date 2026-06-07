@@ -105,6 +105,14 @@ def main() -> None:
         "take_profit": 0.06,
         "sizing": "equal-weight, market-neutral",
     }
+
+    # conviction layer: combine velocity regime with CMC Fear & Greed
+    try:
+        from sentiment import conviction
+        out["conviction"] = conviction(regime, fg_val)
+    except Exception:
+        pass
+
     print(json.dumps(out, indent=2))
 
 

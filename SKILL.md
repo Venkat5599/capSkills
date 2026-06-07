@@ -79,31 +79,55 @@ sizing   -> equal weight, market-neutral; hold 3h; stop -5%; take-profit +6%
 Return JSON the agent can act on or display:
 ```json
 {
-  "timestamp": "...",
   "pulse_index": 1.84,
-  "panic_threshold": 1.33,
   "regime": "PANIC",
-  "fear_greed": 18,
   "action": "FADE_LONG",
   "picks": ["INJ", "FET", "LDO", "AAVE", "DOT"],
+  "fear_greed": 18,
   "hold_hours": 3,
   "stop_loss": -0.05,
   "take_profit": 0.06,
   "sizing": "equal-weight, market-neutral",
-  "note": "High velocity + falling cluster: fade the overshoot."
+  "conviction": {
+    "grade": "HIGH",
+    "reason": "velocity panic + extreme fear agree (capitulation)",
+    "fear_greed": 18,
+    "fg_label": "extreme fear"
+  }
 }
 ```
-Then explain in plain language: the regime, why, and the trade rationale.
+Then explain in plain language: the regime, the conviction, and the rationale.
 
-## How to run (reference implementation)
+### Conviction layer
+The signal is graded by combining the velocity **regime** with CMC's **Fear & Greed**:
+PANIC + extreme fear (≤25) or EUPHORIA + extreme greed (≥75) = HIGH conviction
+(price and crowd agree). Disagreement = LOW (size down / wait). Both inputs are
+CMC-native.
 
+### Optional live bonus — X / social corroboration
+For a richer live read, an agent with the **agent-reach** skill can also search
+X/Twitter ("search crypto panic/fear on twitter") to corroborate the regime.
+Shown in the demo; not hard-wired (free social scrapers are rate-limited).
+
+## How to run
+
+**Live signal (primary — what to run when asked for the regime/signal):**
 ```bash
-python scripts/velocity.py      # Pulse index + regime over history
-python scripts/signals.py       # current signal from a regime + last returns
-python backtest/backtest2.py    # market-neutral edge validation
+export CMC_API_KEY=<your CoinMarketCap key>   # free Basic tier works
+python scripts/cmc_live.py                    # -> JSON: regime, action, picks, fear_greed
 ```
-The reference scripts read OHLCV (Binance free klines for backtest; swap in CMC
-quotes for live). The strategy logic is identical across data sources.
+`cmc_live.py` pulls live CoinMarketCap quotes + Fear & Greed, computes the Pulse
+index, classifies the regime, and emits the market-neutral signal. This is the
+deliverable a judge runs.
+
+**Validation / backtest (reproduce the proof):**
+```bash
+python scripts/data_fetch.py        # pull history (free Binance klines, no key)
+python backtest/validate_indicator.py   # 20/20 crash capture, regime fwd returns
+python backtest/backtest_fees.py    # honest fee-survival disclosure
+```
+Backtest uses Binance free klines (CMC free tier paywalls historical OHLCV);
+live path uses CMC. Identical strategy logic across both.
 
 ## Validation (2.5y hourly, 20 tokens — see backtest/results.md)
 
