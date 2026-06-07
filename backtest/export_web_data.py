@@ -101,7 +101,7 @@ def main() -> None:
         "latest_signal": sig,
         "regime_counts": agg["regime"].value_counts().to_dict(),
     }
-    dest = ROOT / "site" / "public"
+    dest = ROOT / "site" / "data"
     dest.mkdir(parents=True, exist_ok=True)
     (dest / "pulse_data.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(f"Wrote {dest / 'pulse_data.json'}")

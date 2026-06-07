@@ -229,7 +229,7 @@ function drawEquity(cv, eq){
 }
 
 const pct=v=>(v>0?'+':'')+v+'%';
-fetch('public/pulse_data.json').then(r=>r.json()).then(d=>{
+fetch('data/pulse_data.json').then(r=>r.json()).then(d=>{
   const sig=d.latest_signal, v=d.validation;
   document.getElementById('regimeLabel').textContent = sig.regime;
   document.getElementById('regimeLabel').style.color = REGIME_COLOR[sig.regime]||'#fff';

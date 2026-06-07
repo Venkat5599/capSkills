@@ -19,6 +19,16 @@ metadata:
 > Mood is lagging. Speed is leading. Pulse measures how fast and how synchronized
 > the whole market reprices at once — the second derivative — and trades the regime.
 
+## Setup (one step)
+
+Set a free CoinMarketCap API key (Basic tier works) before running the live signal:
+```bash
+export CMC_API_KEY=your_key_here      # get one free at pro.coinmarketcap.com
+pip install -r requirements.txt
+python scripts/cmc_live.py            # -> live regime + signal JSON
+```
+Live demo: https://pulse-vix.vercel.app · Repo: https://github.com/Venkat5599/capSkills
+
 ## What this Skill does
 
 Given live CoinMarketCap data for a basket of tokens, this Skill:

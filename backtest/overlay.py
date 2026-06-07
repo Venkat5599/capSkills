@@ -130,7 +130,7 @@ def main() -> None:
     step = max(1, len(eq_base) // 400)
     out = {"baseline": base_m, "gated": gated_m, "flips": n_flips,
            "eq_base": eq_base[::step], "eq_gated": eq_gated[::step]}
-    (ROOT / "site" / "public" / "overlay_data.json").write_text(json.dumps(out, indent=2))
+    (ROOT / "site" / "data" / "overlay_data.json").write_text(json.dumps(out, indent=2))
     print("Wrote overlay_results.png, overlay_data.json, results.md")
 
 
