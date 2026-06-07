@@ -20,21 +20,31 @@ tailwind.config = { theme:{ extend:{
 }}}
 </script>
 <style>
-  body{ background:#F2EFE6; color:#0A0A0A; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden;
+  body{ background:#0A0A0A; color:#0A0A0A; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden;
         font-feature-settings:"ss01","cv01","cv02"; -webkit-font-smoothing:antialiased; }
   ::selection{ background:#FF2D2D; color:#F2EFE6; }
   ::-webkit-scrollbar{ width:0.35em; } ::-webkit-scrollbar-track{ background:transparent; } ::-webkit-scrollbar-thumb{ background:#FF2D2D; }
-  .mesh{ position:fixed; inset:0; z-index:0; pointer-events:none; }
-  .orb{ position:absolute; border-radius:9999px; filter:blur(150px); }
-  .grain{ position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0.05; mix-blend-mode:multiply;
+  .grain{ position:fixed; inset:0; z-index:80; pointer-events:none; opacity:0.05; mix-blend-mode:multiply;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-  .reveal{ opacity:0; transform:translateY(2.6rem); filter:blur(8px); transition:all 1.1s cubic-bezier(0.16,1,0.3,1); }
+  .progressbar{ position:fixed; top:0; left:0; height:2px; background:#FF2D2D; z-index:90; width:0; }
+
+  /* sticky stack */
+  .stack{ position:relative; }
+  .panel{ position:sticky; top:0; min-height:100svh; display:flex; align-items:center;
+          background:#F2EFE6; will-change:transform; overflow:hidden; }
+  .panel:not(:first-child){ border-top:1px solid rgba(10,10,10,0.10);
+          border-radius:2.5rem 2.5rem 0 0; box-shadow:0 -30px 60px -30px rgba(10,10,10,0.35); }
+  .panel-inner{ width:100%; max-width:80rem; margin:0 auto; padding:7rem 1.5rem; }
+  @media(min-width:1024px){ .panel-inner{ padding:7rem 7rem; } }
+  .orb{ position:absolute; border-radius:9999px; filter:blur(150px); z-index:0; }
+  .pc{ position:relative; z-index:1; }
+
+  .reveal{ opacity:0; transform:translateY(2.4rem); filter:blur(8px); transition:all 1s cubic-bezier(0.16,1,0.3,1); }
   .reveal.in{ opacity:1; transform:translateY(0); filter:blur(0); }
   .reveal[data-d="1"]{ transition-delay:.1s } .reveal[data-d="2"]{ transition-delay:.2s } .reveal[data-d="3"]{ transition-delay:.3s }
   .spring{ transition:all .7s cubic-bezier(0.32,0.72,0,1); }
   .card{ background:#FBFAF5; box-shadow:0 1px 0 rgba(255,255,255,0.7) inset, 0 20px 50px -30px rgba(10,10,10,0.25); }
-  .uw{ text-transform:uppercase; letter-spacing:0.2em; }
-  .kicker{ font-size:11px; }
+  .uw{ text-transform:uppercase; letter-spacing:0.2em; } .kicker{ font-size:11px; }
   .editorial{ font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:-0.02em; line-height:0.9; text-transform:uppercase; }
   .quote{ font-family:Newsreader,serif; font-style:italic; }
   .outline-text{ -webkit-text-stroke:1.4px rgba(10,10,10,0.28); color:transparent; }
@@ -43,20 +53,14 @@ tailwind.config = { theme:{ extend:{
   @keyframes marquee{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
   .marquee{ animation:marquee 30s linear infinite; }
   .num{ font-variant-numeric:tabular-nums; }
-  .progressbar{ position:fixed; top:0; left:0; height:2px; background:#FF2D2D; z-index:70; width:0; }
 </style>
 </head>
 <body>
 <div class="grain"></div>
 <div class="progressbar" id="prog"></div>
-<div class="mesh">
-  <div class="orb" style="width:560px;height:560px;background:rgba(255,45,45,.10);top:-160px;left:-110px"></div>
-  <div class="orb" style="width:520px;height:520px;background:rgba(199,120,0,.08);top:42%;right:-130px"></div>
-  <div class="orb" style="width:620px;height:620px;background:rgba(31,158,110,.07);bottom:-200px;left:26%"></div>
-</div>
 
 <!-- Nav -->
-<nav class="fixed top-0 inset-x-0 z-50 flex justify-center mt-6 px-4">
+<nav class="fixed top-0 inset-x-0 z-[85] flex justify-center mt-6 px-4">
   <div class="flex items-center gap-6 rounded-full border border-ink/10 bg-bone/70 backdrop-blur-2xl px-5 py-2.5">
     <span class="font-display font-700 tracking-tight text-[15px] flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-signal beat"></span>PULSE</span>
     <div class="hidden sm:flex items-center gap-5 text-[11px] uw text-ink/50">
@@ -70,7 +74,7 @@ tailwind.config = { theme:{ extend:{
 </nav>
 
 <!-- Chapter rail -->
-<div class="hidden lg:flex fixed left-8 top-1/2 -translate-y-1/2 z-40 flex-col gap-5 text-[11px] uw">
+<div class="hidden lg:flex fixed left-8 top-1/2 -translate-y-1/2 z-[84] flex-col gap-5 text-[11px] uw">
   <a href="#c01" data-sec="c01" class="chap text-ink/30 spring">01 / Thesis</a>
   <a href="#live" data-sec="live" class="chap text-ink/30 spring">02 / Live</a>
   <a href="#c02" data-sec="c02" class="chap text-ink/30 spring">03 / Proof</a>
@@ -79,123 +83,151 @@ tailwind.config = { theme:{ extend:{
   <a href="#install" data-sec="install" class="chap text-ink/30 spring">06 / Install</a>
 </div>
 
-<!-- HERO -->
-<section id="c01" class="relative z-10 min-h-[100dvh] flex flex-col justify-center max-w-7xl mx-auto px-6 lg:px-28">
-  <div class="reveal in">
-    <span class="inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-3 py-1 kicker uw text-signal mb-10">CMC AI Agent Hub · Track 2 · 2026</span>
-    <h1 class="editorial text-[15vw] md:text-[10rem]">Speed<br/>leads<br/><span class="outline-text">mood.</span></h1>
-    <p class="mt-10 max-w-xl text-lg md:text-xl text-ink/60 leading-relaxed">Fear &amp; Greed tells you where the crowd <span class="quote text-ink">is</span>. Pulse measures how <span class="text-signal font-600">fast</span> the whole market reprices at once — a crypto VIX — and trades the regime.</p>
-    <div class="mt-12 flex flex-wrap items-center gap-5">
-      <a href="#live" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-7 pr-2 py-3.5 spring active:scale-[0.98]">Watch the heartbeat
-        <span class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center spring group-hover:translate-x-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></span>
-      </a>
-      <span class="kicker uw text-ink/35">2.5-yr backtest · 20 tokens · 20/20 crashes</span>
-    </div>
-  </div>
-  <div class="absolute bottom-10 left-6 lg:left-28 text-ink/30 kicker uw reveal in" data-d="3">Scroll ↓</div>
-</section>
+<div class="stack">
 
-<!-- Marquee -->
-<div class="relative z-10 py-6 border-y border-ink/10 overflow-hidden">
-  <div class="flex whitespace-nowrap marquee">
-    <span class="editorial text-3xl md:text-5xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
-    <span class="editorial text-3xl md:text-5xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
-  </div>
+  <!-- HERO -->
+  <section id="c01" class="panel">
+    <div class="orb" style="width:560px;height:560px;background:rgba(255,45,45,.10);top:-160px;left:-110px"></div>
+    <div class="panel-inner pc">
+      <div class="reveal in">
+        <span class="inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-3 py-1 kicker uw text-signal mb-10">CMC AI Agent Hub · Track 2 · 2026</span>
+        <h1 class="editorial text-[15vw] md:text-[10rem]">Speed<br/>leads<br/><span class="outline-text">mood.</span></h1>
+        <p class="mt-10 max-w-xl text-lg md:text-xl text-ink/60 leading-relaxed">Fear &amp; Greed tells you where the crowd <span class="quote text-ink">is</span>. Pulse measures how <span class="text-signal font-600">fast</span> the whole market reprices at once — a crypto VIX — and trades the regime.</p>
+        <div class="mt-12 flex flex-wrap items-center gap-5">
+          <a href="#live" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-7 pr-2 py-3.5 spring active:scale-[0.98]">Watch the heartbeat
+            <span class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center spring group-hover:translate-x-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></span>
+          </a>
+          <span class="kicker uw text-ink/35">2.5-yr backtest · 20 tokens · 20/20 crashes</span>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-8 inset-x-0 overflow-hidden border-t border-ink/10 py-3 pc">
+      <div class="flex whitespace-nowrap marquee">
+        <span class="editorial text-2xl md:text-4xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
+        <span class="editorial text-2xl md:text-4xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE -->
+  <section id="live" class="panel">
+    <div class="panel-inner pc">
+      <div class="reveal flex items-baseline gap-4 mb-8"><span class="num font-display text-signal text-sm">02</span><h2 class="editorial text-3xl md:text-5xl">Live heartbeat</h2></div>
+      <div class="reveal rounded-[2.2rem] card p-6 md:p-10">
+        <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
+          <div><span class="kicker uw text-ink/40">Live regime</span><div id="regimeLabel" class="editorial text-5xl md:text-7xl mt-2">—</div></div>
+          <div class="text-right"><span class="kicker uw text-ink/40">Pulse index</span><div id="pulseVal" class="font-display font-600 text-3xl md:text-4xl mt-2">—</div></div>
+        </div>
+        <canvas id="ekg" height="220" class="w-full"></canvas>
+        <div id="picks" class="mt-6 flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY FINDING 01 -->
+  <section id="c02" class="panel">
+    <div class="orb" style="width:520px;height:520px;background:rgba(255,45,45,.08);top:10%;right:-140px"></div>
+    <div class="panel-inner pc">
+      <div class="reveal kicker uw text-ink/40 mb-8">[ Key finding 01 ]</div>
+      <div class="grid md:grid-cols-12 gap-8 md:gap-10 items-center">
+        <div class="md:col-span-7 reveal min-w-0"><div id="vCapture" class="editorial text-[24vw] md:text-[13rem] text-signal leading-[0.8]">—</div></div>
+        <div class="md:col-span-5 reveal" data-d="1">
+          <h2 class="editorial text-3xl md:text-4xl mb-5">It catches<br/>every crash.</h2>
+          <p class="text-ink/60 leading-relaxed">Of the 20 worst daily drops across 2.5 years, the Pulse index sat in its top decile within 24 hours. Every single one — the gauge sees the crash as it happens.</p>
+        </div>
+      </div>
+      <blockquote class="reveal quote text-xl md:text-3xl text-ink/80 max-w-4xl mt-14 leading-snug">“The signal isn't where price is — it's how fast the whole market is moving at once.”</blockquote>
+    </div>
+  </section>
+
+  <!-- KEY FINDING 02 -->
+  <section id="c03" class="panel">
+    <div class="panel-inner pc">
+      <div class="reveal kicker uw text-ink/40 mb-6">[ Key finding 02 ]</div>
+      <h2 class="reveal editorial text-3xl md:text-5xl mb-10">Panic is a bounce,<br/>not a warning.</h2>
+      <div class="grid md:grid-cols-3 gap-px bg-ink/10 rounded-[2rem] overflow-hidden border border-ink/10">
+        <div class="reveal bg-bone p-8 lg:p-10"><div class="kicker uw text-calm mb-3">After CALM</div><div id="vCalm" class="editorial text-4xl lg:text-5xl">—</div><p class="text-ink/40 mt-3 text-[14px]">quiet → nothing</p></div>
+        <div class="reveal bg-bone p-8 lg:p-10" data-d="1"><div class="kicker uw text-euph mb-3">After EUPHORIA</div><div id="vEuph" class="editorial text-4xl lg:text-5xl">—</div><p class="text-ink/40 mt-3 text-[14px]">greed → momentum</p></div>
+        <div class="reveal bg-bone p-8 lg:p-10" data-d="2"><div class="kicker uw text-panic mb-3">After PANIC</div><div id="vPanic" class="editorial text-4xl lg:text-5xl text-signal">—</div><p class="text-ink/40 mt-3 text-[14px]">capitulation → the bounce</p></div>
+      </div>
+      <div class="reveal mt-8 rounded-[2rem] card p-7 lg:p-8">
+        <span class="kicker uw text-signal">The honest part</span>
+        <p class="text-ink/65 mt-3 leading-relaxed max-w-3xl">We disclose our own fee math. The high-frequency version loses to costs (break-even ~0.06%). The value is the <span class="text-ink font-600">regime signal</span> — a fee-immune capitulation gauge. Track 2 asks for exactly this. We keep the failing test in the repo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- METHOD -->
+  <section id="c04" class="panel">
+    <div class="panel-inner pc">
+      <div class="reveal kicker uw text-ink/40 mb-6">[ Method ]</div>
+      <h2 class="reveal editorial text-3xl md:text-5xl mb-10">Three moves.</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="reveal rounded-[2rem] card p-8"><div class="font-display text-ink/20 text-3xl">01</div><h3 class="font-display font-600 text-2xl mt-4">Measure speed</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Each token's move ÷ its own volatility. Averaged across the basket — the Pulse index. A crypto VIX.</p></div>
+        <div class="reveal rounded-[2rem] card p-8" data-d="1"><div class="font-display text-ink/20 text-3xl">02</div><h3 class="font-display font-600 text-2xl mt-4">Name the regime</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Fast + falling = <span class="text-panic font-600">PANIC</span>. Fast + rising = <span class="text-euph font-600">EUPHORIA</span>. Quiet = <span class="text-calm font-600">CALM</span>.</p></div>
+        <div class="reveal rounded-[2rem] card p-8" data-d="2"><div class="font-display text-ink/20 text-3xl">03</div><h3 class="font-display font-600 text-2xl mt-4">Trade it</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Fade the oversold in panic. Ride the strongest in euphoria. Stand aside when calm.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL (last panel — not sticky-tall, normal) -->
+  <section id="install" class="panel" style="min-height:auto">
+    <div class="panel-inner pc">
+      <div class="reveal flex items-baseline gap-4 mb-10"><span class="num font-display text-signal text-sm">06</span><h2 class="editorial text-3xl md:text-5xl">Install in one line.</h2></div>
+      <div class="reveal rounded-[2.2rem] overflow-hidden border border-ink/10">
+        <div class="bg-ink text-bone p-8 md:p-10 font-mono text-[14px] md:text-[15px]">
+          <div class="text-bone/40 mb-2"># install across 16 agent platforms</div>
+          <div class="text-signal mb-6 break-all">npx skills add https://github.com/Venkat5599/capSkills -y</div>
+          <div class="text-bone/40 mb-2"># then ask your agent</div>
+          <div class="text-bone">"What's the crypto market regime right now?"</div>
+        </div>
+      </div>
+      <div class="reveal mt-6 flex flex-wrap gap-4">
+        <a href="https://github.com/Venkat5599/capSkills" target="_blank" rel="noopener" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-6 pr-2 py-3 spring active:scale-[0.98]">View the repo
+          <span class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center spring group-hover:translate-x-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></span>
+        </a>
+        <a href="https://github.com/Venkat5599/capSkills/tree/main/docs" target="_blank" rel="noopener" class="rounded-full border border-ink/20 px-6 py-3 font-600 text-ink/80 hover:text-ink hover:border-signal spring">Read the docs</a>
+      </div>
+      <div class="mt-16 flex flex-wrap items-center justify-between gap-4 text-ink/40 kicker uw border-t border-ink/10 pt-8">
+        <span class="font-display text-ink/70 flex items-center gap-2 normal-case tracking-normal text-[15px]"><span class="w-2 h-2 rounded-full bg-signal beat"></span>Pulse</span>
+        <span>BNB Hack · CoinMarketCap × Trust Wallet × BNB Chain · 2026</span>
+      </div>
+    </div>
+  </section>
+
 </div>
-
-<!-- LIVE -->
-<section id="live" class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-28">
-  <div class="reveal flex items-baseline gap-4 mb-10"><span class="num font-display text-signal text-sm">02</span><h2 class="editorial text-3xl md:text-5xl">Live heartbeat</h2></div>
-  <div class="reveal rounded-[2.2rem] card p-6 md:p-10">
-    <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
-      <div><span class="kicker uw text-ink/40">Live regime</span><div id="regimeLabel" class="editorial text-5xl md:text-7xl mt-2">—</div></div>
-      <div class="text-right"><span class="kicker uw text-ink/40">Pulse index</span><div id="pulseVal" class="font-display font-600 text-3xl md:text-4xl mt-2">—</div></div>
-    </div>
-    <canvas id="ekg" height="240" class="w-full"></canvas>
-    <div id="picks" class="mt-6 flex flex-wrap gap-2"></div>
-  </div>
-</section>
-
-<!-- KEY FINDING 01 -->
-<section id="c02" class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-28 border-t border-ink/10">
-  <div class="reveal kicker uw text-ink/40 mb-8">[ Key finding 01 ]</div>
-  <div class="grid md:grid-cols-12 gap-10 items-end">
-    <div class="md:col-span-7 reveal"><div id="vCapture" class="editorial text-[26vw] md:text-[16rem] text-signal leading-[0.8]">—</div></div>
-    <div class="md:col-span-5 reveal" data-d="1">
-      <h2 class="editorial text-3xl md:text-4xl mb-5">It catches<br/>every crash.</h2>
-      <p class="text-ink/60 leading-relaxed">Of the 20 worst daily drops across 2.5 years of data, the Pulse index sat in its top decile within 24 hours. Every single one. The gauge sees the crash as it happens.</p>
-    </div>
-  </div>
-  <blockquote class="reveal quote text-2xl md:text-4xl text-ink/80 max-w-4xl mt-20 leading-snug">“The signal isn't where price is — it's how fast the whole market is moving at once.”</blockquote>
-</section>
-
-<!-- KEY FINDING 02 -->
-<section id="c03" class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-28 border-t border-ink/10">
-  <div class="reveal kicker uw text-ink/40 mb-8">[ Key finding 02 ]</div>
-  <h2 class="reveal editorial text-3xl md:text-5xl mb-12">Panic is a bounce,<br/>not a warning.</h2>
-  <div class="grid md:grid-cols-3 gap-px bg-ink/10 rounded-[2rem] overflow-hidden border border-ink/10">
-    <div class="reveal bg-bone p-10"><div class="kicker uw text-calm mb-3">After CALM</div><div id="vCalm" class="editorial text-5xl">—</div><p class="text-ink/40 mt-3 text-[14px]">quiet → nothing</p></div>
-    <div class="reveal bg-bone p-10" data-d="1"><div class="kicker uw text-euph mb-3">After EUPHORIA</div><div id="vEuph" class="editorial text-5xl">—</div><p class="text-ink/40 mt-3 text-[14px]">greed → momentum</p></div>
-    <div class="reveal bg-bone p-10" data-d="2"><div class="kicker uw text-panic mb-3">After PANIC</div><div id="vPanic" class="editorial text-5xl text-signal">—</div><p class="text-ink/40 mt-3 text-[14px]">capitulation → the bounce</p></div>
-  </div>
-  <div class="reveal mt-10 rounded-[2rem] card p-8">
-    <span class="kicker uw text-signal">The honest part</span>
-    <p class="text-ink/65 mt-3 leading-relaxed max-w-3xl">We disclose our own fee math. The high-frequency version loses to costs (break-even ~0.06%). The value is the <span class="text-ink font-600">regime signal</span> — a fee-immune capitulation gauge. Track 2 asks for exactly this: market regime alerts. We keep the failing test in the repo.</p>
-  </div>
-</section>
-
-<!-- METHOD -->
-<section id="c04" class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-28 border-t border-ink/10">
-  <div class="reveal kicker uw text-ink/40 mb-8">[ Method ]</div>
-  <h2 class="reveal editorial text-3xl md:text-5xl mb-12">Three moves.</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="reveal rounded-[2rem] card p-8"><div class="font-display text-ink/20 text-3xl">01</div><h3 class="font-display font-600 text-2xl mt-4">Measure speed</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Each token's move ÷ its own volatility. Averaged across the basket — the Pulse index. A crypto VIX.</p></div>
-    <div class="reveal rounded-[2rem] card p-8" data-d="1"><div class="font-display text-ink/20 text-3xl">02</div><h3 class="font-display font-600 text-2xl mt-4">Name the regime</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Fast + falling = <span class="text-panic font-600">PANIC</span>. Fast + rising = <span class="text-euph font-600">EUPHORIA</span>. Quiet = <span class="text-calm font-600">CALM</span>.</p></div>
-    <div class="reveal rounded-[2rem] card p-8" data-d="2"><div class="font-display text-ink/20 text-3xl">03</div><h3 class="font-display font-600 text-2xl mt-4">Trade it</h3><p class="text-ink/55 mt-3 text-[15px] leading-relaxed">Fade the oversold in panic. Ride the strongest in euphoria. Stand aside when calm.</p></div>
-  </div>
-</section>
-
-<!-- INSTALL -->
-<section id="install" class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-28 border-t border-ink/10">
-  <div class="reveal flex items-baseline gap-4 mb-12"><span class="num font-display text-signal text-sm">06</span><h2 class="editorial text-3xl md:text-5xl">Install in one line.</h2></div>
-  <div class="reveal rounded-[2.2rem] overflow-hidden border border-ink/10">
-    <div class="bg-ink text-bone p-8 md:p-10 font-mono text-[14px] md:text-[15px]">
-      <div class="text-bone/40 mb-2"># install across 16 agent platforms</div>
-      <div class="text-signal mb-6 break-all">npx skills add https://github.com/Venkat5599/capSkills -y</div>
-      <div class="text-bone/40 mb-2"># then ask your agent</div>
-      <div class="text-bone">"What's the crypto market regime right now?"</div>
-    </div>
-  </div>
-  <div class="reveal mt-6 flex flex-wrap gap-4">
-    <a href="https://github.com/Venkat5599/capSkills" target="_blank" rel="noopener" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-6 pr-2 py-3 spring active:scale-[0.98]">View the repo
-      <span class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center spring group-hover:translate-x-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></span>
-    </a>
-    <a href="https://github.com/Venkat5599/capSkills/tree/main/docs" target="_blank" rel="noopener" class="rounded-full border border-ink/20 px-6 py-3 font-600 text-ink/80 hover:text-ink hover:border-signal spring">Read the docs</a>
-  </div>
-</section>
-
-<footer class="relative z-10 max-w-7xl mx-auto px-6 lg:px-28 py-16 border-t border-ink/10">
-  <div class="flex flex-wrap items-center justify-between gap-4 text-ink/40 kicker uw">
-    <span class="font-display text-ink/70 flex items-center gap-2 normal-case tracking-normal text-[15px]"><span class="w-2 h-2 rounded-full bg-signal beat"></span>Pulse</span>
-    <span>BNB Hack · CoinMarketCap × Trust Wallet × BNB Chain · 2026</span>
-  </div>
-</footer>
 
 <script>
 const lenis=new Lenis({lerp:0.1,wheelMultiplier:0.9,smoothWheel:true});
 function raf(t){lenis.raf(t);requestAnimationFrame(raf);}requestAnimationFrame(raf);
-document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();lenis.scrollTo(t,{offset:-20});}}));
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();lenis.scrollTo(t,{offset:0});}}));
+
 const REGIME_COLOR={CALM:'#1F9E6E',PANIC:'#FF2D2D',EUPHORIA:'#C77800'};
 const prog=document.getElementById('prog');
-lenis.on('scroll',({scroll,limit})=>{prog.style.width=(scroll/(limit||1)*100)+'%';});
+const panels=[...document.querySelectorAll('.panel')];
+
+// sticky-stack depth: as the next panel rises, scale+dim the leaving one
+function stack(){
+  const vh=innerHeight;
+  for(let i=0;i<panels.length-1;i++){
+    const next=panels[i+1].getBoundingClientRect();
+    const cover=Math.min(1,Math.max(0,1-next.top/vh));   // 0 → next at bottom, 1 → next fully covers
+    const inner=panels[i].querySelector('.panel-inner');
+    if(inner){ inner.style.transform=`scale(${1-0.06*cover})`; inner.style.opacity=`${1-0.55*cover}`; }
+  }
+}
+lenis.on('scroll',({scroll,limit})=>{ prog.style.width=(scroll/(limit||1)*100)+'%'; stack(); });
+addEventListener('resize',stack); stack();
+
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.12});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const revealAll=()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
-if(matchMedia('(prefers-reduced-motion: reduce)').matches) revealAll(); setTimeout(revealAll,3000);
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) revealAll(); setTimeout(revealAll,3200);
 const chapIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){document.querySelectorAll('.chap').forEach(c=>{c.classList.remove('text-signal');c.classList.add('text-ink/30');});const a=document.querySelector('.chap[data-sec="'+e.target.id+'"]');if(a){a.classList.add('text-signal');a.classList.remove('text-ink/30');}}}),{threshold:0.5});
-document.querySelectorAll('section[id]').forEach(s=>chapIO.observe(s));
+panels.forEach(s=>chapIO.observe(s));
+
 function dpi(cv,h){const r=devicePixelRatio||1;const w=cv.clientWidth;cv.width=w*r;cv.height=h*r;const c=cv.getContext('2d');c.scale(r,r);return{c,w,h};}
-function drawEKG(cv,series,thr){const{c,w,h}=dpi(cv,240);const max=Math.max(...series.map(s=>s.pulse),thr*1.4);
+function drawEKG(cv,series,thr){const{c,w,h}=dpi(cv,220);const max=Math.max(...series.map(s=>s.pulse),thr*1.4);
   const x=i=>i/(series.length-1)*w,y=v=>h-10-(v/max)*(h-28);
   c.strokeStyle='rgba(255,45,45,0.35)';c.setLineDash([4,5]);c.lineWidth=1;c.beginPath();c.moveTo(0,y(thr));c.lineTo(w,y(thr));c.stroke();c.setLineDash([]);
   c.lineWidth=1.6;c.lineJoin='round';
