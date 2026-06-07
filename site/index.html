@@ -20,7 +20,7 @@ tailwind.config = { theme:{ extend:{
 }}}
 </script>
 <style>
-  body{ background:#0A0A0A; color:#0A0A0A; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden;
+  body{ background:#F2EFE6; color:#0A0A0A; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden;
         font-feature-settings:"ss01","cv01","cv02"; -webkit-font-smoothing:antialiased; }
   ::selection{ background:#FF2D2D; color:#F2EFE6; }
   ::-webkit-scrollbar{ width:0.35em; } ::-webkit-scrollbar-track{ background:transparent; } ::-webkit-scrollbar-thumb{ background:#FF2D2D; }
@@ -34,8 +34,8 @@ tailwind.config = { theme:{ extend:{
           background:#F2EFE6; will-change:transform; overflow:hidden; }
   .panel:not(:first-child){ border-top:1px solid rgba(10,10,10,0.10);
           border-radius:2.5rem 2.5rem 0 0; box-shadow:0 -30px 60px -30px rgba(10,10,10,0.35); }
-  .panel-inner{ width:100%; max-width:80rem; margin:0 auto; padding:7rem 1.5rem; }
-  @media(min-width:1024px){ .panel-inner{ padding:7rem 7rem; } }
+  .panel-inner{ width:100%; max-width:80rem; margin:0 auto; padding:6.5rem 1.5rem 3rem; }
+  @media(min-width:1024px){ .panel-inner{ padding:7rem 7rem 4rem; } }
   .orb{ position:absolute; border-radius:9999px; filter:blur(150px); z-index:0; }
   .pc{ position:relative; z-index:1; }
 
@@ -90,21 +90,15 @@ tailwind.config = { theme:{ extend:{
     <div class="orb" style="width:560px;height:560px;background:rgba(255,45,45,.10);top:-160px;left:-110px"></div>
     <div class="panel-inner pc">
       <div class="reveal in">
-        <span class="inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-3 py-1 kicker uw text-signal mb-10">CMC AI Agent Hub · Track 2 · 2026</span>
-        <h1 class="editorial text-[15vw] md:text-[10rem]">Speed<br/>leads<br/><span class="outline-text">mood.</span></h1>
-        <p class="mt-10 max-w-xl text-lg md:text-xl text-ink/60 leading-relaxed">Fear &amp; Greed tells you where the crowd <span class="quote text-ink">is</span>. Pulse measures how <span class="text-signal font-600">fast</span> the whole market reprices at once — a crypto VIX — and trades the regime.</p>
-        <div class="mt-12 flex flex-wrap items-center gap-5">
-          <a href="#live" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-7 pr-2 py-3.5 spring active:scale-[0.98]">Watch the heartbeat
+        <span class="inline-flex items-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-3 py-1 kicker uw text-signal mb-6 md:mb-8">CMC AI Agent Hub · Track 2 · 2026</span>
+        <h1 class="editorial text-[13vw] md:text-[7.5rem] lg:text-[8.5rem]">Speed<br/>leads<br/><span class="outline-text">mood.</span></h1>
+        <p class="mt-7 max-w-xl text-base md:text-lg text-ink/60 leading-relaxed">Fear &amp; Greed tells you where the crowd <span class="quote text-ink">is</span>. Pulse measures how <span class="text-signal font-600">fast</span> the whole market reprices at once — a crypto VIX — and trades the regime.</p>
+        <div class="mt-8 flex flex-wrap items-center gap-5">
+          <a href="#live" class="group flex items-center gap-3 rounded-full bg-ink text-bone font-600 pl-6 pr-2 py-3 spring active:scale-[0.98]">Watch the heartbeat
             <span class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center spring group-hover:translate-x-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></span>
           </a>
-          <span class="kicker uw text-ink/35">2.5-yr backtest · 20 tokens · 20/20 crashes</span>
+          <span class="kicker uw text-ink/35">2.5-yr · 20 tokens · 20/20 crashes</span>
         </div>
-      </div>
-    </div>
-    <div class="absolute bottom-8 inset-x-0 overflow-hidden border-t border-ink/10 py-3 pc">
-      <div class="flex whitespace-nowrap marquee">
-        <span class="editorial text-2xl md:text-4xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
-        <span class="editorial text-2xl md:text-4xl text-ink/[0.08] pr-10">Calm · Panic · Euphoria · Calm · Panic · Euphoria · </span>
       </div>
     </div>
   </section>
