@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pulse — the heartbeat of the crypto market</title>
+<meta name="description" content="Pulse measures the speed the market reprices — a crypto VIX — and trades the regime. CMC AI Agent Hub Skill." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: { extend: {
+    fontFamily: {
+      display: ['"Space Grotesk"', 'sans-serif'],
+      sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+    },
+    colors: {
+      ink: '#050505',
+      calm: '#34d399',
+      panic: '#fb5e6d',
+      euph: '#fbbf24',
+    },
+  }},
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #050505; color: #f5f5f7; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+  .mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .orb { position: absolute; border-radius: 9999px; filter: blur(120px); opacity: 0.35; }
+  .grain { position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .reveal { opacity: 0; transform: translateY(2rem); filter: blur(8px);
+    transition: all 0.9s cubic-bezier(0.32,0.72,0,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); filter: blur(0); }
+  .ease-spring { transition: all 0.7s cubic-bezier(0.32,0.72,0,1); }
+  .hairline { box-shadow: inset 0 1px 1px rgba(255,255,255,0.08); }
+  @keyframes beat { 0%,100%{transform:scale(1);opacity:.9} 50%{transform:scale(1.12);opacity:1} }
+  .beat { animation: beat 1.6s cubic-bezier(0.32,0.72,0,1) infinite; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="mesh">
+  <div class="orb" style="width:520px;height:520px;background:#fb5e6d;top:-120px;left:-80px"></div>
+  <div class="orb" style="width:480px;height:480px;background:#34d399;top:30%;right:-120px"></div>
+  <div class="orb" style="width:560px;height:560px;background:#6d5efb;bottom:-160px;left:30%;opacity:.25"></div>
+</div>
+
+<!-- Floating glass nav -->
+<nav class="fixed top-0 inset-x-0 z-40 flex justify-center mt-6 px-4">
+  <div class="flex items-center gap-6 rounded-full border border-white/10 bg-white/5 backdrop-blur-2xl px-5 py-2.5 hairline">
+    <span class="font-display font-700 tracking-tight text-[15px] flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-panic beat"></span>Pulse
+    </span>
+    <div class="hidden sm:flex items-center gap-5 text-[13px] text-white/60">
+      <a href="#live" class="hover:text-white ease-spring">Live</a>
+      <a href="#proof" class="hover:text-white ease-spring">Proof</a>
+      <a href="#how" class="hover:text-white ease-spring">How</a>
+    </div>
+    <a href="#proof" class="group flex items-center gap-2 rounded-full bg-white text-ink text-[13px] font-600 pl-4 pr-1.5 py-1.5 ease-spring active:scale-[0.98]">
+      See the edge
+      <span class="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center ease-spring group-hover:translate-x-0.5 group-hover:-translate-y-px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+      </span>
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="relative z-10 min-h-[100dvh] flex flex-col justify-center max-w-6xl mx-auto px-6">
+  <div class="reveal in">
+    <span class="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/50 mb-8">CMC AI Agent Hub · Track 2</span>
+    <h1 class="font-display font-700 tracking-tight leading-[0.95] text-[15vw] md:text-[8.5rem]">
+      Speed leads<br/><span class="text-white/40">mood.</span>
+    </h1>
+    <p class="mt-8 max-w-xl text-lg text-white/60 leading-relaxed">
+      Fear &amp; Greed tells you where the crowd <em class="text-white/80 not-italic">is</em>. Pulse measures how <span class="text-panic">fast</span> the whole market reprices at once — the crypto VIX — and trades the regime: fade the panic, ride the euphoria.
+    </p>
+    <div class="mt-10 flex flex-wrap items-center gap-4">
+      <a href="#live" class="group flex items-center gap-3 rounded-full bg-white text-ink font-600 pl-6 pr-2 py-3 ease-spring active:scale-[0.98]">
+        Watch the heartbeat
+        <span class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center ease-spring group-hover:translate-x-1 group-hover:-translate-y-px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+        </span>
+      </a>
+      <span class="text-[13px] text-white/40">1-yr backtest · 20 tokens · market-neutral</span>
+    </div>
+  </div>
+</section>
+
+<!-- Live EKG -->
+<section id="live" class="relative z-10 max-w-6xl mx-auto px-6 py-24">
+  <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+    <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 backdrop-blur-xl p-6 md:p-10 hairline">
+      <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
+        <div>
+          <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Live regime</span>
+          <div id="regimeLabel" class="font-display font-700 text-5xl md:text-6xl mt-2">—</div>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Pulse index</span>
+          <div id="pulseVal" class="font-display font-600 text-3xl mt-2">—</div>
+        </div>
+      </div>
+      <canvas id="ekg" height="220" class="w-full"></canvas>
+      <div id="picks" class="mt-6 flex flex-wrap gap-2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Proof / metrics bento -->
+<section id="proof" class="relative z-10 max-w-6xl mx-auto px-6 py-24">
+  <div class="reveal mb-12">
+    <span class="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/50 mb-5">The proof</span>
+    <h2 class="font-display font-700 text-4xl md:text-6xl tracking-tight">It actually has an edge.</h2>
+    <p class="mt-4 text-white/50 max-w-lg">One year, hourly, 20 liquid tokens. Market-neutral. Honest numbers — modest per trade, real in aggregate.</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="reveal md:col-span-2 rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full hairline">
+        <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Market-neutral return</span>
+        <div id="mRet" class="font-display font-700 text-6xl text-calm mt-3">—</div>
+        <canvas id="equity" height="120" class="w-full mt-6"></canvas>
+      </div>
+    </div>
+    <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full flex flex-col justify-between hairline">
+        <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Sharpe (approx)</span>
+        <div id="mSharpe" class="font-display font-700 text-5xl mt-3">—</div>
+      </div>
+    </div>
+    <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full flex flex-col justify-between hairline">
+        <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Max drawdown</span>
+        <div id="mDD" class="font-display font-700 text-5xl text-panic mt-3">—</div>
+      </div>
+    </div>
+    <div class="reveal md:col-span-2 rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full flex items-center justify-between gap-4 hairline">
+        <div><span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Panic-fade win</span><div class="font-display font-700 text-5xl text-calm mt-3">53.0%</div></div>
+        <div class="text-right"><span class="text-[10px] uppercase tracking-[0.2em] text-white/40">Trades</span><div id="mTrades" class="font-display font-700 text-5xl mt-3">—</div></div>
+      </div>
+    </div>
+    <div class="reveal md:col-span-2 rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full hairline">
+        <span class="text-[10px] uppercase tracking-[0.2em] text-white/40">The honest part</span>
+        <p class="text-white/60 mt-3 leading-relaxed text-[15px]">The naive fade fails. The edge is specifically <span class="text-white">market-neutral + short-horizon (3h)</span>. We keep the failed test in the repo. This is a strategy spec — not a money printer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How -->
+<section id="how" class="relative z-10 max-w-6xl mx-auto px-6 py-24">
+  <div class="reveal mb-12">
+    <span class="inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/50 mb-5">How it works</span>
+    <h2 class="font-display font-700 text-4xl md:text-6xl tracking-tight">Three moves.</h2>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full hairline">
+        <div class="font-display text-white/30 text-2xl">01</div>
+        <h3 class="font-display font-600 text-2xl mt-4">Measure speed</h3>
+        <p class="text-white/50 mt-3 text-[15px] leading-relaxed">Each token's move ÷ its own volatility. Average across the basket = the Pulse index. A crypto VIX.</p>
+      </div>
+    </div>
+    <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full hairline">
+        <div class="font-display text-white/30 text-2xl">02</div>
+        <h3 class="font-display font-600 text-2xl mt-4">Name the regime</h3>
+        <p class="text-white/50 mt-3 text-[15px] leading-relaxed">High speed + falling = <span class="text-panic">PANIC</span>. High speed + rising = <span class="text-euph">EUPHORIA</span>. Quiet = <span class="text-calm">CALM</span>.</p>
+      </div>
+    </div>
+    <div class="reveal rounded-[2rem] border border-white/10 bg-white/[0.03] p-2 hairline">
+      <div class="rounded-[calc(2rem-0.5rem)] bg-ink/60 p-8 h-full hairline">
+        <div class="font-display text-white/30 text-2xl">03</div>
+        <h3 class="font-display font-600 text-2xl mt-4">Trade it</h3>
+        <p class="text-white/50 mt-3 text-[15px] leading-relaxed">Fade the oversold in panic. Ride the strongest in euphoria. Stand aside when calm. 3-hour, market-neutral.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="relative z-10 max-w-6xl mx-auto px-6 py-20 border-t border-white/5 mt-12">
+  <div class="flex flex-wrap items-center justify-between gap-4 text-white/40 text-[13px]">
+    <span class="font-display text-white/70 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-panic beat"></span>Pulse</span>
+    <span>BNB Hack · Track 2 · CoinMarketCap × Trust Wallet × BNB Chain</span>
+  </div>
+</footer>
+
+<script>
+// reveal on scroll
+const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+// failsafe: never leave content invisible (static capture / no-scroll / reduced-motion)
+const revealAll=()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) revealAll();
+setTimeout(revealAll, 2500);
+
+const REGIME_COLOR = { CALM:'#34d399', PANIC:'#fb5e6d', EUPHORIA:'#fbbf24' };
+
+function dpiCanvas(cv, h){ const r=window.devicePixelRatio||1; const w=cv.clientWidth; cv.width=w*r; cv.height=h*r; const c=cv.getContext('2d'); c.scale(r,r); return {c,w,h}; }
+
+function drawEKG(cv, series, thr){
+  const {c,w,h} = dpiCanvas(cv, 220);
+  const vals = series.map(s=>s.pulse); const max=Math.max(...vals,thr*1.4), min=0;
+  const x=i=>i/(series.length-1)*w; const y=v=>h-8-((v-min)/(max-min))*(h-24);
+  // threshold line
+  c.strokeStyle='rgba(251,94,109,0.35)'; c.setLineDash([4,5]); c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,y(thr)); c.lineTo(w,y(thr)); c.stroke(); c.setLineDash([]);
+  // pulse line, segment-colored by regime
+  c.lineWidth=1.6; c.lineJoin='round';
+  for(let i=1;i<series.length;i++){
+    c.beginPath(); c.strokeStyle = series[i].regime==='CALM' ? 'rgba(255,255,255,0.35)' : REGIME_COLOR[series[i].regime];
+    c.moveTo(x(i-1),y(series[i-1].pulse)); c.lineTo(x(i),y(series[i].pulse)); c.stroke();
+  }
+  // glow dots on panic peaks
+  series.forEach((s,i)=>{ if(s.regime==='PANIC'&&s.pulse>thr*1.05){ c.fillStyle='#fb5e6d'; c.beginPath(); c.arc(x(i),y(s.pulse),2.2,0,7); c.fill(); }});
+}
+
+function drawEquity(cv, eq){
+  const {c,w,h}=dpiCanvas(cv,120); const vals=eq.map(p=>p.v); const max=Math.max(...vals),min=Math.min(...vals);
+  const x=i=>i/(eq.length-1)*w; const y=v=>h-6-((v-min)/(max-min||1))*(h-16);
+  const g=c.createLinearGradient(0,0,0,h); g.addColorStop(0,'rgba(52,211,153,0.25)'); g.addColorStop(1,'rgba(52,211,153,0)');
+  c.beginPath(); c.moveTo(0,h); eq.forEach((p,i)=>c.lineTo(x(i),y(p.v))); c.lineTo(w,h); c.closePath(); c.fillStyle=g; c.fill();
+  c.beginPath(); eq.forEach((p,i)=>i?c.lineTo(x(i),y(p.v)):c.moveTo(x(i),y(p.v))); c.strokeStyle='#34d399'; c.lineWidth=1.6; c.stroke();
+}
+
+fetch('public/pulse_data.json').then(r=>r.json()).then(d=>{
+  const m=d.metrics, sig=d.latest_signal;
+  document.getElementById('regimeLabel').textContent = sig.regime;
+  document.getElementById('regimeLabel').style.color = REGIME_COLOR[sig.regime]||'#fff';
+  document.getElementById('pulseVal').textContent = sig.pulse_index;
+  document.getElementById('mRet').textContent = (m.total_return_pct>0?'+':'')+m.total_return_pct+'%';
+  document.getElementById('mSharpe').textContent = m.sharpe;
+  document.getElementById('mDD').textContent = m.max_drawdown_pct+'%';
+  document.getElementById('mTrades').textContent = m.trades;
+  const picks=document.getElementById('picks');
+  picks.innerHTML = '<span class="text-[11px] uppercase tracking-[0.15em] text-white/30 self-center mr-1">picks</span>' +
+    (sig.picks||[]).map(p=>`<span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[13px] font-500">${p}</span>`).join('');
+  drawEKG(document.getElementById('ekg'), d.series, d.panic_threshold);
+  drawEquity(document.getElementById('equity'), d.equity);
+}).catch(e=>{ document.getElementById('regimeLabel').textContent='load data'; console.error(e); });
+
+window.addEventListener('resize',()=>location.reload());
+</script>
+</body>
+</html>
