@@ -137,7 +137,9 @@ python backtest/validate_indicator.py   # 20/20 crash capture, regime fwd return
 python backtest/backtest_fees.py    # honest fee-survival disclosure
 ```
 Backtest uses Binance free klines (CMC free tier paywalls historical OHLCV);
-live path uses CMC. Identical strategy logic across both.
+live path uses CMC. Same regime/signal logic across both; the live high-velocity
+threshold is calibrated to the backtest's 90th-percentile decile (2.228), computed
+by running the live snapshot proxy over 21,599 historical hourly cross-sections.
 
 ## Validation (2.5y hourly, 20 tokens — see backtest/results.md)
 

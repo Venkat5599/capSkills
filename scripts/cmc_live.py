@@ -11,15 +11,26 @@ describes; the backtest validates the same logic on history.
 """
 from __future__ import annotations
 import os
+import sys
 import json
 from pathlib import Path
 
 import requests
 
+# Make sibling modules (sentiment.py) importable no matter the caller's cwd.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 BASKET = ["ETH", "XRP", "DOGE", "ADA", "LINK", "BCH", "LTC", "AVAX", "DOT", "UNI",
           "ATOM", "FIL", "INJ", "FET", "CAKE", "TRX", "SHIB", "TON", "AAVE", "LDO"]
 BASE = "https://pro-api.coinmarketcap.com"
 K = 5
+
+# Live high-velocity threshold for the dispersion-adjusted Pulse proxy.
+# Calibrated to the backtest's 90th-percentile decile rule: computed by running
+# the SAME live-proxy formula (mean|move| / cross-section spread) over 21,599
+# historical hourly cross-sections -> 90th pct = 2.228 (median is ~1.04, so the
+# old hardcoded 1.0 fired half the time and did NOT match the validated decile).
+PULSE_PANIC_THRESHOLD = 2.228
 
 
 def load_key() -> str:
@@ -80,8 +91,9 @@ def main() -> None:
         except Exception:
             fg_val = None
 
-    # regime: high dispersion-adjusted speed = high velocity. Threshold ~1.0 on proxy.
-    high = pulse > 1.0
+    # regime: high dispersion-adjusted speed = high velocity. Threshold is the
+    # backtest-calibrated 90th-percentile decile (see PULSE_PANIC_THRESHOLD).
+    high = pulse > PULSE_PANIC_THRESHOLD
     regime = "CALM" if not high else ("PANIC" if direction < 0 else "EUPHORIA")
     if regime == "PANIC":
         picks = sorted(moves, key=moves.get)[:K]            # most oversold
@@ -106,12 +118,10 @@ def main() -> None:
         "sizing": "equal-weight, market-neutral",
     }
 
-    # conviction layer: combine velocity regime with CMC Fear & Greed
-    try:
-        from sentiment import conviction
-        out["conviction"] = conviction(regime, fg_val)
-    except Exception:
-        pass
+    # conviction layer: combine velocity regime with CMC Fear & Greed.
+    # Import is cwd-independent (see sys.path insert at top); failures are loud.
+    from sentiment import conviction
+    out["conviction"] = conviction(regime, fg_val)
 
     print(json.dumps(out, indent=2))
 
