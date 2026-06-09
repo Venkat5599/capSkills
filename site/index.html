@@ -115,6 +115,34 @@ tailwind.config = { theme:{ extend:{
         <canvas id="ekg" height="220" class="w-full"></canvas>
         <div id="picks" class="mt-6 flex flex-wrap gap-2"></div>
       </div>
+
+      <!-- ASK THE AGENT (live skill, zero install) -->
+      <div class="reveal mt-5 rounded-[2.2rem] card p-6 md:p-10" id="agent">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2 h-2 rounded-full bg-signal beat"></span>
+            <span class="font-display font-600 text-xl md:text-2xl">Ask the agent</span>
+          </div>
+          <span class="kicker uw text-ink/35">live skill · no install</span>
+        </div>
+        <p class="text-ink/55 text-[15px] leading-relaxed max-w-2xl mb-5">An agent runs the Pulse skill on <span class="text-ink font-600">live CoinMarketCap</span> data and reads you the regime. This is the Skill in motion — type a question.</p>
+
+        <div id="chatLog" class="flex flex-col gap-3 mb-4"></div>
+
+        <div id="chatChips" class="flex flex-wrap gap-2 mb-4">
+          <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 text-[13px] font-500 hover:border-signal hover:text-signal spring">What's the regime right now?</button>
+          <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 text-[13px] font-500 hover:border-signal hover:text-signal spring">Is this a dip to fade?</button>
+          <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 text-[13px] font-500 hover:border-signal hover:text-signal spring">Give me a trading signal</button>
+        </div>
+
+        <form id="chatForm" class="flex items-center gap-2 rounded-full border border-ink/15 bg-bone/60 pl-5 pr-1.5 py-1.5 focus-within:border-signal spring">
+          <input id="chatInput" autocomplete="off" placeholder="Ask about the market regime…" class="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 py-2" />
+          <button type="submit" id="chatSend" class="shrink-0 w-10 h-10 rounded-full bg-signal text-bone flex items-center justify-center spring active:scale-95 disabled:opacity-40">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+          </button>
+        </form>
+        <div class="mt-3 kicker uw text-ink/30">Powered by CoinMarketCap AI Agent Hub · narration by DeepSeek</div>
+      </div>
     </div>
   </section>
 
@@ -239,6 +267,38 @@ fetch('data/pulse_data.json').then(r=>r.json()).then(d=>{const sig=d.latest_sign
   drawEKG(document.getElementById('ekg'),d.series,d.panic_threshold);
 }).catch(e=>{document.getElementById('regimeLabel').textContent='load data';console.error(e);});
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>location.reload(),300);});
+
+/* ── Ask the agent ── */
+const chatLog=document.getElementById('chatLog'),chatForm=document.getElementById('chatForm'),
+      chatInput=document.getElementById('chatInput'),chatSend=document.getElementById('chatSend');
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function bubble(role,html){const w=document.createElement('div');
+  w.className=role==='you'?'self-end max-w-[85%]':'self-start max-w-[92%]';
+  w.innerHTML=role==='you'
+    ?`<div class="rounded-2xl rounded-br-md bg-ink text-bone px-4 py-2.5 text-[14.5px]">${html}</div>`
+    :`<div class="rounded-2xl rounded-bl-md bg-bone border border-ink/10 px-4 py-3 text-[14.5px] leading-relaxed text-ink/85">${html}</div>`;
+  chatLog.appendChild(w);w.scrollIntoView({behavior:'smooth',block:'nearest'});return w;}
+function sigBadges(s){if(!s)return'';const col=REGIME_COLOR[s.regime]||'#0A0A0A',cv=s.conviction||{};
+  const pk=(s.picks&&s.picks.length)?s.picks.map(p=>`<span class="rounded-full border border-ink/15 px-2 py-0.5 text-[12px] font-500">${esc(p)}</span>`).join(''):'';
+  return `<div class="mt-3 pt-3 border-t border-ink/10 flex flex-wrap items-center gap-2 text-[12px]">
+    <span class="uw kicker font-600" style="color:${col}">${esc(s.regime)}</span>
+    <span class="text-ink/35">Pulse ${esc(s.pulse_index)}</span>
+    ${cv.grade?`<span class="rounded-full bg-ink/[0.05] px-2 py-0.5">conviction ${esc(cv.grade)}</span>`:''}
+    ${s.fear_greed!=null?`<span class="text-ink/35">F&amp;G ${esc(s.fear_greed)}</span>`:''}
+    ${s.live===false?`<span class="text-ink/30 italic">cached</span>`:`<span style="color:${col}">● live</span>`}
+    ${pk?`<span class="basis-full"></span>`+pk:''}</div>`;}
+let chatBusy=false;
+async function ask(msg){if(chatBusy||!msg.trim())return;chatBusy=true;chatSend.disabled=true;
+  bubble('you',esc(msg));
+  const t=bubble('bot','<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.2s"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.4s"></span></span>');
+  try{const r=await fetch('/api/pulse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'error');
+    t.querySelector('div').innerHTML=esc(d.reply).replace(/\n/g,'<br>')+sigBadges(d.signal);
+  }catch(e){t.querySelector('div').innerHTML='The live agent is catching its breath — try again in a moment. (The validated backtest is below.)';}
+  finally{chatBusy=false;chatSend.disabled=false;}}
+chatForm.addEventListener('submit',e=>{e.preventDefault();const m=chatInput.value;chatInput.value='';ask(m);});
+document.querySelectorAll('#chatChips .chip').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
 </script>
 </body>
 </html>
