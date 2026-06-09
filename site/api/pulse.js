@@ -100,8 +100,13 @@ async function cachedSignal(host) {
 }
 
 async function narrate(signal, message) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return null;
+  // Provider-agnostic: point LLM_BASE_URL at any OpenAI-compatible server
+  // (self-hosted DeepSeek on a VPS via vLLM/ollama/llama.cpp/TGI, or OpenRouter).
+  // Falls back to OpenRouter only if LLM_BASE_URL is unset.
+  const base = (process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/$/, "");
+  const apiKey = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || "";
+  // self-hosted servers usually need no key; only OpenRouter strictly requires one
+  if (!apiKey && base.includes("openrouter.ai")) return null;
   const model = process.env.PULSE_LLM_MODEL || "deepseek/deepseek-chat-v3-0324:free";
   const sys =
     "You are the Pulse agent — a crypto-market regime analyst running the Pulse Velocity-Regime skill " +
@@ -110,10 +115,12 @@ async function narrate(signal, message) {
     "(CALM/PANIC/EUPHORIA), what it means (panic = capitulation bounce to fade; euphoria = momentum; calm = stand aside), " +
     "the conviction grade and why, and the concrete action/picks. Be sharp and concrete. Never invent numbers " +
     "outside the JSON. No markdown headers, no disclaimers about not being financial advice.";
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   try {
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    const ctrl = AbortSignal.timeout(20000);   // VPS cold-start guard
+    const r = await fetch(base + "/chat/completions", {
+      method: "POST", headers, signal: ctrl,
       body: JSON.stringify({
         model,
         messages: [
