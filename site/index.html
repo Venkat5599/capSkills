@@ -287,16 +287,36 @@ function sigBadges(s){if(!s)return'';const col=REGIME_COLOR[s.regime]||'#0A0A0A'
     ${s.fear_greed!=null?`<span class="text-ink/35">F&amp;G ${esc(s.fear_greed)}</span>`:''}
     ${s.live===false?`<span class="text-ink/30 italic">cached</span>`:`<span style="color:${col}">● live</span>`}
     ${pk?`<span class="basis-full"></span>`+pk:''}</div>`;}
+const DOTS='<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.2s"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.4s"></span></span>';
 let chatBusy=false;
 async function ask(msg){if(chatBusy||!msg.trim())return;chatBusy=true;chatSend.disabled=true;
   bubble('you',esc(msg));
-  const t=bubble('bot','<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.2s"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.4s"></span></span>');
+  const t=bubble('bot',DOTS),box=t.querySelector('div');
+  let sig=null,reasoning='',answer='';
+  // re-render: while only reasoning has arrived, show it as a dim live "thinking"
+  // ticker (last ~220 chars); once the answer streams, show the answer + badges.
+  const render=(done)=>{
+    if(answer){box.innerHTML=esc(answer).replace(/\n/g,'<br>')+(done?sigBadges(sig):'<span class="opacity-40">▍</span>');}
+    else if(reasoning){box.innerHTML=`<span class="block text-ink/40 italic text-[13px] leading-snug">${esc(reasoning.slice(-220))}<span class="opacity-40">▍</span></span>`;}
+    else{box.innerHTML=DOTS;}
+    t.scrollIntoView({behavior:'smooth',block:'nearest'});};
   try{const r=await fetch('/api/pulse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'error');
-    t.querySelector('div').innerHTML=esc(d.reply).replace(/\n/g,'<br>')+sigBadges(d.signal);
-  }catch(e){t.querySelector('div').innerHTML='The live agent is catching its breath — try again in a moment. (The validated backtest is below.)';}
+    const ct=r.headers.get('content-type')||'';
+    if(!r.ok||!ct.includes('text/event-stream')){let e='error';try{e=(await r.json()).error||e;}catch{}throw new Error(e);}
+    const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
+    for(;;){const{value,done}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      let i;while((i=buf.indexOf('\n\n'))>=0){const block=buf.slice(0,i);buf=buf.slice(i+2);
+        let ev='message',data='';
+        for(const ln of block.split('\n')){if(ln.startsWith('event:'))ev=ln.slice(6).trim();else if(ln.startsWith('data:'))data+=ln.slice(5).trim();}
+        if(!data)continue;let j;try{j=JSON.parse(data);}catch{continue;}
+        if(ev==='signal')sig=j;
+        else if(ev==='delta'){if(j.kind==='reasoning')reasoning+=j.text;else if(j.kind==='answer')answer+=j.text;render(false);}
+        else if(ev==='done'){render(true);}}}
+    if(!answer)box.innerHTML=fallbackText()+(sig?sigBadges(sig):'');
+  }catch(e){box.innerHTML='The live agent is catching its breath — try again in a moment. (The validated backtest is below.)';}
   finally{chatBusy=false;chatSend.disabled=false;}}
+function fallbackText(){return 'Live read unavailable right now — the validated backtest below is the proof.';}
 chatForm.addEventListener('submit',e=>{e.preventDefault();const m=chatInput.value;chatInput.value='';ask(m);});
 document.querySelectorAll('#chatChips .chip').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
 </script>

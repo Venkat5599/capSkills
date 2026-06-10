@@ -99,7 +99,23 @@ async function cachedSignal(host) {
   };
 }
 
-async function narrate(signal, message) {
+const NARRATE_SYS =
+  "You are the Pulse agent — a crypto-market regime analyst running the Pulse Velocity-Regime skill " +
+  "(a 'crypto VIX' measuring how fast the whole market reprices). You are given a JSON signal computed " +
+  "deterministically from live CoinMarketCap data. Explain it to a judge in 3-5 tight sentences: the regime, " +
+  "the conviction grade and why, and the concrete action + picks.\n" +
+  "CRITICAL action semantics — do not invert them:\n" +
+  "- action FADE_LONG (PANIC): the market over-sold in a synchronized panic and tends to BOUNCE. " +
+  "You BUY / go LONG the listed oversold picks expecting a rebound. FADE means fade the DROP, i.e. buy it — never 'sell' or 'avoid'.\n" +
+  "- action MOMENTUM_LONG (EUPHORIA): BUY / go LONG the strongest picks, riding momentum.\n" +
+  "- action FLAT (CALM): no trade, stand aside, hold no positions.\n" +
+  "Never invent numbers outside the JSON. No markdown headers, no 'not financial advice' disclaimers.";
+
+// Stream the narration as it generates. `onDelta(kind, text)` fires for each
+// chunk: kind "reasoning" (the model thinking — shown live as a ticker so the
+// demo feels instant) or "answer" (the visible reply). Returns the full answer
+// text, or null if the LLM is unavailable / produced nothing.
+async function narrateStream(signal, message, onDelta) {
   // Provider-agnostic: point LLM_BASE_URL at any OpenAI-compatible server
   // (self-hosted DeepSeek on a VPS via vLLM/ollama/llama.cpp/TGI, or OpenRouter).
   // Falls back to OpenRouter only if LLM_BASE_URL is unset.
@@ -108,17 +124,6 @@ async function narrate(signal, message) {
   // self-hosted servers usually need no key; only OpenRouter strictly requires one
   if (!apiKey && base.includes("openrouter.ai")) return null;
   const model = process.env.PULSE_LLM_MODEL || "deepseek-v4-flash-free";
-  const sys =
-    "You are the Pulse agent — a crypto-market regime analyst running the Pulse Velocity-Regime skill " +
-    "(a 'crypto VIX' measuring how fast the whole market reprices). You are given a JSON signal computed " +
-    "deterministically from live CoinMarketCap data. Explain it to a judge in 3-5 tight sentences: the regime, " +
-    "the conviction grade and why, and the concrete action + picks.\n" +
-    "CRITICAL action semantics — do not invert them:\n" +
-    "- action FADE_LONG (PANIC): the market over-sold in a synchronized panic and tends to BOUNCE. " +
-    "You BUY / go LONG the listed oversold picks expecting a rebound. FADE means fade the DROP, i.e. buy it — never 'sell' or 'avoid'.\n" +
-    "- action MOMENTUM_LONG (EUPHORIA): BUY / go LONG the strongest picks, riding momentum.\n" +
-    "- action FLAT (CALM): no trade, stand aside, hold no positions.\n" +
-    "Never invent numbers outside the JSON. No markdown headers, no 'not financial advice' disclaimers.";
   const headers = { "Content-Type": "application/json" };
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   try {
@@ -126,9 +131,9 @@ async function narrate(signal, message) {
     const r = await fetch(base + "/chat/completions", {
       method: "POST", headers, signal: ctrl,
       body: JSON.stringify({
-        model,
+        model, stream: true,
         messages: [
-          { role: "system", content: sys },
+          { role: "system", content: NARRATE_SYS },
           { role: "user", content: `Judge asked: "${message}"\n\nLive signal JSON:\n${JSON.stringify(signal, null, 2)}` },
         ],
         // budget covers reasoning models (deepseek-v4-flash-free spends ~700
@@ -136,8 +141,29 @@ async function narrate(signal, message) {
         temperature: 0.4, max_tokens: 1500,
       }),
     });
-    if (!r.ok) return null;
-    return (await r.json())?.choices?.[0]?.message?.content?.trim() || null;
+    if (!r.ok || !r.body) return null;
+
+    let answer = "", buf = "";
+    const dec = new TextDecoder();
+    const reader = r.body.getReader();
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (data === "[DONE]") continue;
+        let j; try { j = JSON.parse(data); } catch { continue; }
+        const d = j?.choices?.[0]?.delta || {};
+        if (d.reasoning_content) onDelta("reasoning", d.reasoning_content);
+        if (d.content) { answer += d.content; onDelta("answer", d.content); }
+      }
+    }
+    return answer.trim() || null;
   } catch { return null; }
 }
 
@@ -152,6 +178,8 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).json({ error: "POST only" }); return; }
   const message = (req.body?.message || "what's the regime right now?").toString().slice(0, 500);
 
+  // Compute the deterministic signal first (fast). Errors here are returned as
+  // plain JSON *before* the stream starts, so the client can detect them.
   let signal;
   const key = process.env.CMC_API_KEY;
   try {
@@ -162,6 +190,25 @@ module.exports = async function handler(req, res) {
     catch { res.status(502).json({ error: "signal unavailable" }); return; }
   }
 
-  const reply = (await narrate(signal, message)) || fallbackReply(signal);
-  res.status(200).json({ signal, reply });
+  // Stream as Server-Sent Events: the signal card first, then the narration
+  // token-by-token (reasoning ticker + answer). X-Accel-Buffering:no keeps
+  // Vercel/proxies from buffering the stream.
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+  const send = (event, obj) => res.write(`event: ${event}\ndata: ${JSON.stringify(obj)}\n\n`);
+
+  send("signal", signal);
+  let answered = false;
+  const answer = await narrateStream(signal, message, (kind, text) => {
+    if (kind === "answer") answered = true;
+    send("delta", { kind, text });
+  });
+  // No LLM (unavailable / empty): stream the deterministic fallback as the answer.
+  if (!answer && !answered) send("delta", { kind: "answer", text: fallbackReply(signal) });
+  send("done", {});
+  res.end();
 }
