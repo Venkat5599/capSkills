@@ -83,6 +83,19 @@ async function liveSignal(key) {
   };
 }
 
+// Preferred deterministic signal: the SAME live computation the dashboard card
+// and EKG use (/api/heartbeat — real 30d Binance velocity + CMC Fear & Greed).
+// Fetching it here means the agent narrates the exact numbers the card shows —
+// one source of truth, no "card says 0.7 but chat says 1.6" mismatch.
+async function heartbeatSignal(host) {
+  const proto = host.startsWith("localhost") ? "http" : "https";
+  const r = await fetch(`${proto}://${host}/api/heartbeat`, { signal: AbortSignal.timeout(22000) });
+  if (!r.ok) throw new Error(`heartbeat ${r.status}`);
+  const d = await r.json();
+  const { series, ...signal } = d;   // drop the bulky series before narration
+  return signal;
+}
+
 async function cachedSignal(host) {
   // Fallback: the validated backtest's last signal, served from the static site.
   const proto = host.startsWith("localhost") ? "http" : "https";
@@ -183,11 +196,17 @@ module.exports = async function handler(req, res) {
   let signal;
   const key = process.env.CMC_API_KEY;
   try {
-    if (!key) throw new Error("no CMC key");
-    signal = await liveSignal(key);
+    // Same signal as the dashboard card/EKG (real 30d velocity + CMC F&G).
+    signal = await heartbeatSignal(req.headers.host);
   } catch {
-    try { signal = await cachedSignal(req.headers.host); }
-    catch { res.status(502).json({ error: "signal unavailable" }); return; }
+    try {
+      // Fallback: CMC latest-quote velocity proxy.
+      if (!key) throw new Error("no CMC key");
+      signal = await liveSignal(key);
+    } catch {
+      try { signal = await cachedSignal(req.headers.host); }
+      catch { res.status(502).json({ error: "signal unavailable" }); return; }
+    }
   }
 
   // Stream as Server-Sent Events: the signal card first, then the narration
