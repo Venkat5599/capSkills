@@ -70,7 +70,7 @@ tailwind.config = { theme:{ extend:{
       <a href="#live" class="hover:text-ink spring">Live</a><a href="#proof" class="hover:text-ink spring">Proof</a>
       <a href="#record" class="hover:text-ink spring">Record</a><a href="#method" class="hover:text-ink spring">Method</a>
     </div>
-    <a href="#install" class="group flex items-center gap-2 rounded-full bg-ink text-bone brack pl-4 pr-4 py-2 spring active:scale-[0.98] hover:bg-signal">Install
+    <a href="/dashboard" class="group flex items-center gap-2 rounded-full bg-ink text-bone brack pl-4 pr-4 py-2 spring active:scale-[0.98] hover:bg-signal"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span>Dashboard
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="spring group-hover:translate-x-0.5"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
     </a>
   </div>
@@ -95,11 +95,12 @@ tailwind.config = { theme:{ extend:{
         <span class="brack text-ash mb-7 inline-block">CMC AI Agent Hub · Track 2</span>
         <h1 class="display text-[16vw] md:text-[8.5rem] lg:text-[9.5rem]">speed<br/>leads<br/><span class="outline-text">mood.</span></h1>
         <p class="mt-8 max-w-xl text-base md:text-lg text-ash leading-relaxed">Fear &amp; Greed tells you where the crowd <span class="quote text-ink">is</span>. Pulse measures how <span class="text-signal font-600">fast</span> the whole market reprices at once — a crypto VIX — and trades the regime.</p>
-        <div class="mt-9 flex flex-wrap items-center gap-7">
-          <a href="#live" class="group flex items-center gap-3 brack text-ink link-line">See it live
+        <div class="mt-9 flex flex-wrap items-center gap-5">
+          <a href="/dashboard" class="group flex items-center gap-2.5 rounded-full bg-ink text-bone brack pl-5 pr-5 py-3 spring active:scale-[0.98] hover:bg-signal"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span>Enter the dashboard
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="spring group-hover:translate-x-1"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
           </a>
-          <a href="#install" class="brack text-ash hover:text-ink link-line spring">Install the skill</a>
+          <a href="#live" class="brack text-ash hover:text-ink link-line spring">See it live</a>
+          <a href="#install" class="brack text-ash hover:text-ink link-line spring">Install</a>
         </div>
       </div>
       <!-- live vitals -->
@@ -159,7 +160,12 @@ tailwind.config = { theme:{ extend:{
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
           </button>
         </form>
-        <div class="mt-4 brack text-ink/30">CMC Agent Hub · narration by DeepSeek</div>
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <span class="brack text-ink/30">CMC Agent Hub · DeepSeek</span>
+          <a href="/dashboard" class="group flex items-center gap-1.5 brack text-ink/50 hover:text-signal link-line spring">Open full dashboard
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spring group-hover:translate-x-0.5"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+          </a>
+        </div>
       </div>
     </div>
   </section>

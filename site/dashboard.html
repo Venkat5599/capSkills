@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pulse — live agent dashboard</title>
+<meta name="description" content="Run the Pulse skill on live CoinMarketCap data. Read the regime, ask the agent." />
+<meta name="theme-color" content="#0A0A0A" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme:{ extend:{
+  fontFamily:{ display:['"Space Grotesk"','sans-serif'], sans:['"Plus Jakarta Sans"','sans-serif'], serif:['Newsreader','serif'], mono:['"Space Mono"','monospace'] },
+  colors:{ bone:'#F2EFE6', paper:'#FBFAF5', ink:'#0A0A0A', ash:'#6F6B62', signal:'#FF2D2D', calm:'#1F9E6E', panic:'#FF2D2D', euph:'#B8741A' },
+}}}
+</script>
+<style>
+  html{ scroll-behavior:smooth; }
+  body{ background:#F2EFE6; color:#0A0A0A; font-family:'Plus Jakarta Sans',sans-serif; overflow-x:hidden;
+        font-feature-settings:"ss01","cv01","cv02"; -webkit-font-smoothing:antialiased; }
+  ::selection{ background:#0A0A0A; color:#F2EFE6; }
+  ::-webkit-scrollbar{ width:0.3em; } ::-webkit-scrollbar-track{ background:transparent; } ::-webkit-scrollbar-thumb{ background:rgba(10,10,10,0.22); }
+  .grain{ position:fixed; inset:0; z-index:80; pointer-events:none; opacity:0.035; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .wrap{ width:100%; max-width:84rem; margin:0 auto; padding-left:1.5rem; padding-right:1.5rem; }
+  @media(min-width:1024px){ .wrap{ padding-left:2.5rem; padding-right:2.5rem; } }
+  .card{ background:#FBFAF5; border:1px solid rgba(10,10,10,0.08); }
+  .editorial{ font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:-0.03em; line-height:0.9; text-transform:lowercase; }
+  .display{ font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:-0.035em; line-height:0.84; text-transform:lowercase; }
+  .quote{ font-family:Newsreader,serif; font-style:italic; }
+  .brack{ font-family:'Space Mono',monospace; text-transform:uppercase; letter-spacing:0.16em; font-size:11px; }
+  .brack::before{ content:"[ "; } .brack::after{ content:" ]"; }
+  .mono{ font-family:'Space Mono',monospace; }
+  .uw{ text-transform:uppercase; letter-spacing:0.2em; } .kicker{ font-size:11px; }
+  .spring{ transition:all .5s cubic-bezier(0.32,0.72,0,1); }
+  .rule{ border-top:1px solid rgba(10,10,10,0.10); }
+  @keyframes beat{ 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.18);opacity:1} }
+  .beat{ animation:beat 1.5s cubic-bezier(0.32,0.72,0,1) infinite; }
+  .num{ font-variant-numeric:tabular-nums; }
+  .link-line{ position:relative; }
+  .link-line::after{ content:""; position:absolute; left:0; bottom:-3px; height:1px; width:100%; background:currentColor; transform:scaleX(0); transform-origin:left; transition:transform .5s cubic-bezier(0.16,1,0.3,1); }
+  .link-line:hover::after{ transform:scaleX(1); }
+  /* chat scroll area */
+  #chatLog::-webkit-scrollbar{ width:0.25em; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-[85] bg-bone/80 backdrop-blur-2xl border-b border-ink/10">
+  <div class="wrap flex items-center justify-between py-4">
+    <a href="/" class="mono font-700 tracking-tight text-[15px] flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-signal beat"></span>PULSE</a>
+    <div class="flex items-center gap-5">
+      <span class="hidden sm:flex items-center gap-1.5 brack text-signal"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span>Live dashboard</span>
+      <a href="/" class="group flex items-center gap-2 brack text-ash hover:text-ink link-line spring">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="spring group-hover:-translate-x-0.5"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>Back to site
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap py-8 md:py-12">
+  <div class="mb-8 md:mb-10">
+    <span class="brack text-ash">CMC AI Agent Hub · Track 2</span>
+    <h1 class="editorial text-5xl md:text-7xl mt-4">the dashboard.</h1>
+    <p class="text-ash mt-4 max-w-2xl leading-relaxed">Live regime read from <span class="text-ink font-600">CoinMarketCap</span>, computed by the same velocity engine as the skill. Ask the agent anything — it runs the signal and narrates it in real time.</p>
+  </div>
+
+  <div class="grid lg:grid-cols-12 gap-5 items-start">
+
+    <!-- LEFT: live vitals -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+      <div class="card rounded-[1.4rem] p-6 md:p-8">
+        <div class="flex items-center justify-between mb-5">
+          <span class="brack text-ash">Current regime</span>
+          <span id="liveDot" class="flex items-center gap-1.5 brack text-ash"><span class="w-1.5 h-1.5 rounded-full bg-ash"></span>loading</span>
+        </div>
+        <div id="dRegime" class="editorial text-6xl md:text-7xl">—</div>
+        <div class="mt-3 mono text-[13px] text-ash">Pulse index <span id="dPulse" class="text-ink num">—</span> · threshold <span id="dThr" class="text-ink num">2.228</span></div>
+        <div class="rule mt-6 pt-5 grid grid-cols-3 gap-3">
+          <div><div class="display text-2xl" id="dAction">—</div><div class="brack text-ash mt-1.5">Action</div></div>
+          <div><div class="display text-2xl" id="dConv">—</div><div class="brack text-ash mt-1.5">Conviction</div></div>
+          <div><div class="display text-2xl num" id="dFg">—</div><div class="brack text-ash mt-1.5">Fear &amp; greed</div></div>
+        </div>
+        <div id="dPicks" class="mt-6 flex flex-wrap gap-2"></div>
+        <div id="dReason" class="mt-5 text-ash text-[13.5px] leading-relaxed quote"></div>
+      </div>
+
+      <div class="card rounded-[1.4rem] p-6">
+        <span class="brack text-ash">Pulse heartbeat · 2.5y hourly</span>
+        <canvas id="ekg" height="150" class="w-full mt-4"></canvas>
+        <div class="mt-3 mono text-[11px] text-ash">red dots = panic spikes · the gauge caught every crash 20/20</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: the agent -->
+    <section class="lg:col-span-7 card rounded-[1.4rem] p-6 md:p-8 ring-1 ring-signal/15 flex flex-col" style="min-height:560px">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <span class="brack text-signal">Try the live agent</span>
+        <span class="w-2.5 h-2.5 rounded-full bg-signal beat"></span>
+      </div>
+      <h2 class="editorial text-3xl md:text-4xl mb-2">ask the agent</h2>
+      <p class="text-ash text-[14px] leading-relaxed mb-5">Runs the Pulse skill on <span class="text-ink font-600">live CoinMarketCap</span> data and reads you the regime. Type a question — watch it think.</p>
+
+      <div id="chatLog" class="flex-1 flex flex-col gap-3 mb-4 overflow-y-auto pr-1" style="max-height:46vh"></div>
+
+      <div id="chatChips" class="flex flex-wrap gap-2 mb-4">
+        <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 mono text-[11.5px] hover:border-signal hover:text-signal spring">What's the regime?</button>
+        <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 mono text-[11.5px] hover:border-signal hover:text-signal spring">A dip to fade?</button>
+        <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 mono text-[11.5px] hover:border-signal hover:text-signal spring">Give me a signal</button>
+        <button class="chip rounded-full border border-ink/15 bg-ink/[0.03] px-3.5 py-1.5 mono text-[11.5px] hover:border-signal hover:text-signal spring">Why velocity beats sentiment?</button>
+      </div>
+      <form id="chatForm" class="flex items-center gap-2 rounded-full border border-ink/15 bg-bone/60 pl-5 pr-1.5 py-1.5 focus-within:border-signal spring">
+        <input id="chatInput" autocomplete="off" placeholder="Ask about the regime…" class="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 py-2" />
+        <button type="submit" id="chatSend" class="shrink-0 w-10 h-10 rounded-full bg-ink text-bone flex items-center justify-center spring active:scale-95 hover:bg-signal disabled:opacity-40">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+        </button>
+      </form>
+      <div class="mt-4 brack text-ink/30">CMC Agent Hub · narration by DeepSeek · no key handed out</div>
+    </section>
+  </div>
+</main>
+
+<script>
+const REGIME_COLOR={CALM:'#1F9E6E',PANIC:'#FF2D2D',EUPHORIA:'#B8741A'};
+const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ── EKG sparkline from cached backtest series ── */
+function dpi(cv,h){const r=devicePixelRatio||1;const w=cv.clientWidth;cv.width=w*r;cv.height=h*r;const c=cv.getContext('2d');c.scale(r,r);return{c,w,h};}
+function drawEKG(cv,series,thr){if(!series||!series.length)return;const{c,w,h}=dpi(cv,150);const max=Math.max(...series.map(s=>s.pulse),thr*1.4);
+  const x=i=>i/(series.length-1)*w,y=v=>h-8-(v/max)*(h-22);
+  c.strokeStyle='rgba(255,45,45,0.35)';c.setLineDash([4,5]);c.lineWidth=1;c.beginPath();c.moveTo(0,y(thr));c.lineTo(w,y(thr));c.stroke();c.setLineDash([]);
+  c.lineWidth=1.5;c.lineJoin='round';
+  for(let i=1;i<series.length;i++){c.beginPath();c.strokeStyle=series[i].regime==='CALM'?'rgba(10,10,10,0.35)':REGIME_COLOR[series[i].regime];c.moveTo(x(i-1),y(series[i-1].pulse));c.lineTo(x(i),y(series[i].pulse));c.stroke();}
+  series.forEach((s,i)=>{if(s.regime==='PANIC'&&s.pulse>thr*1.05){c.fillStyle='#FF2D2D';c.beginPath();c.arc(x(i),y(s.pulse),2.2,0,7);c.fill();}});}
+fetch('data/pulse_data.json').then(r=>r.json()).then(d=>{drawEKG(document.getElementById('ekg'),d.series,d.panic_threshold);if(d.panic_threshold)set('dThr',d.panic_threshold);}).catch(()=>{});
+
+/* ── Live vitals card from a signal object ── */
+function renderVitals(s){if(!s)return;
+  const col=REGIME_COLOR[s.regime]||'#0A0A0A',cv=s.conviction||{};
+  const rg=document.getElementById('dRegime');rg.textContent=s.regime||'—';rg.style.color=col;
+  set('dPulse',s.pulse_index??'—');set('dAction',(s.action||'—').replace('_',' ').toLowerCase());
+  set('dConv',cv.grade?cv.grade.toLowerCase():'—');set('dFg',s.fear_greed!=null?s.fear_greed:'—');
+  const dot=document.getElementById('liveDot');
+  dot.innerHTML=`<span class="w-1.5 h-1.5 rounded-full" style="background:${s.live===false?'#6F6B62':col}"></span>${s.live===false?'cached':'live'}`;
+  dot.style.color=s.live===false?'#6F6B62':col;
+  document.getElementById('dPicks').innerHTML=(s.picks&&s.picks.length)
+    ?'<span class="brack text-ink/30 self-center mr-1">picks</span>'+s.picks.map(p=>`<span class="rounded-full border border-ink/15 bg-ink/[0.03] px-3 py-1 mono text-[12px]">${esc(p)}</span>`).join('')
+    :'<span class="brack text-ink/30">no positions · stand aside</span>';
+  document.getElementById('dReason').textContent=cv.reason?('“'+cv.reason+'”'):'';}
+
+/* ── Agent chat (streaming SSE, mirrors index.html) ── */
+const chatLog=document.getElementById('chatLog'),chatForm=document.getElementById('chatForm'),
+      chatInput=document.getElementById('chatInput'),chatSend=document.getElementById('chatSend');
+function bubble(role,html){const w=document.createElement('div');
+  w.className=role==='you'?'self-end max-w-[85%]':'self-start max-w-[92%]';
+  w.innerHTML=role==='you'
+    ?`<div class="rounded-2xl rounded-br-md bg-ink text-bone px-4 py-2.5 text-[14.5px]">${html}</div>`
+    :`<div class="rounded-2xl rounded-bl-md bg-bone border border-ink/10 px-4 py-3 text-[14.5px] leading-relaxed text-ink/85">${html}</div>`;
+  chatLog.appendChild(w);w.scrollIntoView({behavior:'smooth',block:'nearest'});return w;}
+function sigBadges(s){if(!s)return'';const col=REGIME_COLOR[s.regime]||'#0A0A0A',cv=s.conviction||{};
+  const pk=(s.picks&&s.picks.length)?s.picks.map(p=>`<span class="rounded-full border border-ink/15 px-2 py-0.5 text-[12px] font-500">${esc(p)}</span>`).join(''):'';
+  return `<div class="mt-3 pt-3 border-t border-ink/10 flex flex-wrap items-center gap-2 text-[12px]">
+    <span class="uw kicker font-600" style="color:${col}">${esc(s.regime)}</span>
+    <span class="text-ink/35">Pulse ${esc(s.pulse_index)}</span>
+    ${cv.grade?`<span class="rounded-full bg-ink/[0.05] px-2 py-0.5">conviction ${esc(cv.grade)}</span>`:''}
+    ${s.fear_greed!=null?`<span class="text-ink/35">F&amp;G ${esc(s.fear_greed)}</span>`:''}
+    ${s.live===false?`<span class="text-ink/30 italic">cached</span>`:`<span style="color:${col}">● live</span>`}
+    ${pk?`<span class="basis-full"></span>`+pk:''}</div>`;}
+const DOTS='<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 rounded-full bg-signal beat"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.2s"></span><span class="w-1.5 h-1.5 rounded-full bg-signal beat" style="animation-delay:.4s"></span></span>';
+let chatBusy=false;
+async function ask(msg,silentYou){if(chatBusy||!msg.trim())return;chatBusy=true;chatSend.disabled=true;
+  if(!silentYou)bubble('you',esc(msg));
+  const t=bubble('bot',DOTS),box=t.querySelector('div');
+  let sig=null,reasoning='',answer='';
+  const render=(done)=>{
+    if(answer){box.innerHTML=esc(answer).replace(/\n/g,'<br>')+(done?sigBadges(sig):'<span class="opacity-40">▍</span>');}
+    else if(reasoning){box.innerHTML=`<span class="block text-ink/40 italic text-[13px] leading-snug">${esc(reasoning.slice(-220))}<span class="opacity-40">▍</span></span>`;}
+    else{box.innerHTML=DOTS;}
+    t.scrollIntoView({behavior:'smooth',block:'nearest'});};
+  try{const r=await fetch('/api/pulse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const ct=r.headers.get('content-type')||'';
+    if(!r.ok||!ct.includes('text/event-stream')){let e='error';try{e=(await r.json()).error||e;}catch{}throw new Error(e);}
+    const reader=r.body.getReader(),dec=new TextDecoder();let buf='';
+    for(;;){const{value,done}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      let i;while((i=buf.indexOf('\n\n'))>=0){const block=buf.slice(0,i);buf=buf.slice(i+2);
+        let ev='message',data='';
+        for(const ln of block.split('\n')){if(ln.startsWith('event:'))ev=ln.slice(6).trim();else if(ln.startsWith('data:'))data+=ln.slice(5).trim();}
+        if(!data)continue;let j;try{j=JSON.parse(data);}catch{continue;}
+        if(ev==='signal'){sig=j;renderVitals(j);}
+        else if(ev==='delta'){if(j.kind==='reasoning')reasoning+=j.text;else if(j.kind==='answer')answer+=j.text;render(false);}
+        else if(ev==='done'){render(true);}}}
+    if(!answer)box.innerHTML='Live read unavailable right now — the validated backtest on the main site is the proof.'+(sig?sigBadges(sig):'');
+  }catch(e){box.innerHTML='The live agent is catching its breath — try again in a moment.';}
+  finally{chatBusy=false;chatSend.disabled=false;}}
+chatForm.addEventListener('submit',e=>{e.preventDefault();const m=chatInput.value;chatInput.value='';ask(m);});
+document.querySelectorAll('#chatChips .chip').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
+
+// Auto-run on entry: populate vitals + greet, without a fake user bubble.
+window.addEventListener('load',()=>ask("What's the regime right now?",true));
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{fetch('data/pulse_data.json').then(r=>r.json()).then(d=>drawEKG(document.getElementById('ekg'),d.series,d.panic_threshold)).catch(()=>{});},300);});
+</script>
+</body>
+</html>
