@@ -303,7 +303,25 @@ fetch('data/pulse_data.json').then(r=>r.json()).then(d=>{const sig=d.latest_sign
   document.getElementById('picks').innerHTML='<span class="brack text-ink/30 self-center mr-1">picks</span>'+((sig.picks&&sig.picks.length)?sig.picks:['—']).map(p=>`<span class="rounded-full border border-ink/15 bg-ink/[0.03] px-3 py-1 mono text-[12px]">${p}</span>`).join('');
   drawEKG(document.getElementById('ekg'),d.series,d.panic_threshold);
   drawEquity(document.getElementById('equity'),d.equity);
-}).catch(e=>{document.getElementById('regimeLabel').textContent='load data';console.error(e);});
+}).catch(e=>{document.getElementById('regimeLabel').textContent='load data';console.error(e);}).finally(loadLiveIndex);
+
+// LIVE override: the hero vitals + the #live heartbeat (regime, pulse, EKG,
+// picks, threshold) use the real-time /api/heartbeat signal — same as the
+// dashboard. The backtest proof below (crash capture, Sharpe, equity, forward
+// returns) stays historical on purpose. Runs after the static load so it wins
+// the EKG redraw; falls back silently to the static values if the API is down.
+let liveEkg=null,liveThr=null;
+function loadLiveIndex(){
+  fetch('/api/heartbeat').then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
+    const col=REGIME_COLOR[d.regime]||'#0A0A0A';
+    const rl=document.getElementById('regimeLabel');if(rl){rl.textContent=d.regime;rl.style.color=col;}
+    set('pulseVal',d.pulse_index);
+    const hr=document.getElementById('heroRegime');if(hr){hr.textContent=d.regime;hr.style.color=col;}
+    set('heroPulse',d.pulse_index);if(d.threshold!=null)set('heroThr',d.threshold);
+    document.getElementById('picks').innerHTML='<span class="brack text-ink/30 self-center mr-1">picks</span>'+((d.picks&&d.picks.length)?d.picks:['—']).map(p=>`<span class="rounded-full border border-ink/15 bg-ink/[0.03] px-3 py-1 mono text-[12px]">${p}</span>`).join('');
+    if(d.series&&d.series.length){liveEkg=d.series;liveThr=d.threshold;drawEKG(document.getElementById('ekg'),d.series,d.threshold);}
+  }).catch(()=>{});
+}
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>location.reload(),300);});
 
 /* ── Ask the agent ── */
