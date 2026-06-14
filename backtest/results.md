@@ -29,13 +29,15 @@ decile within 24h. The gauge catches the crashes.
 
 ## Honest scope (read this)
 
-- The signal is **real but small per trade** (~0.05% market-neutral at 3h).
-- At realistic round-trip cost (~0.30% on BSC), the **high-frequency version loses**
-  (break-even ~0.06%). See `backtest_fees.py`. We disclose this openly.
-- It works on **extreme events / longer holds** (top-decile panic, 24h: positive net
-  of fees) and as a **regime/risk alert** — which is fee-immune and what Track 2 asks
-  for ("entry/exit rules OR market regime alerts").
-- This is a **backtestable strategy spec + indicator**, not a profitable HFT bot.
+- The signal's **gross** edge is **real but small per trade** (~0.05% market-neutral at 3h).
+- At realistic round-trip cost (~0.30% on BSC), **no version we tested beats fees**:
+  the HF rule loses (break-even <0.30%, `backtest_fees.py`), and the conviction-gated
+  + directional versions are negative in-sample *and* out-of-sample across a full
+  parameter sweep (`strategy_gated.py`). The only "positive" cells in the extreme
+  sweep (`backtest_extreme.py`) are tiny-sample (n~17) cherry-picks — we don't claim them.
+- The real, robust value is the **regime / capitulation alert** — fee-immune, and
+  exactly what Track 2 asks for ("entry/exit rules OR market regime alerts").
+- This is a **validated indicator + backtestable strategy spec**, not a profitable HFT bot.
 
 ## Fees-aware results (round-trip cost per position)
 

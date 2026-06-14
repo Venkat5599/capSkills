@@ -25,6 +25,7 @@ FEE = 0.30 / 100        # round-trip per position
 K = 3                   # tighter basket on extreme events
 PCTS = [0.90, 0.95, 0.98, 0.99]
 HOLDS = [3, 6, 12, 24, 48]
+MIN_TRADES = 30         # below this, a "positive" cell is a cherry-pick, not an edge
 
 
 def main() -> None:
@@ -69,17 +70,23 @@ def main() -> None:
             win = (net > 0).mean() * 100
             print(f"{pct:>5.2f} {h:>5} {len(per_ts):>7} {edge*100:>+10.3f}% "
                   f"{net.mean()*100:>+9.3f}% {net_ret:>+8.2f}% {win:>5.1f}")
-            if net.mean() > 0 and (best is None or net_ret > best[-1]):
+            # Only count a config as "fee-surviving" if it has a credible sample
+            # size. A positive cell with a dozen trades out of a 20-config sweep is
+            # a cherry-pick, not an edge — we refuse to claim it.
+            if net.mean() > 0 and len(per_ts) >= MIN_TRADES and (best is None or net_ret > best[-1]):
                 best = (pct, h, len(per_ts), edge, net_ret)
 
     print("-" * 72)
     if best:
-        print(f">> FEE-SURVIVING: pct={best[0]} hold={best[1]}h "
-              f"trades={best[2]} edge/trade={best[3]*100:+.3f}% netRet={best[4]:+.2f}%")
-        print(">> Strategy viable net of fees on extreme events.")
+        print(f">> Best cell (n>={MIN_TRADES}): pct={best[0]} hold={best[1]}h "
+              f"trades={best[2]} netRet={best[4]:+.2f}% (~{best[4]/2.5:.1f}%/yr) — MARGINAL.")
+        print(">> NOT robust: this is the best of a 20-config sweep, and it flips negative")
+        print(">>   under proper non-overlap, K=5, and out-of-sample (strategy_gated.py).")
     else:
-        print(">> No config beats 0.30% fee. Pulse = REGIME INDICATOR, not HFT strategy.")
-        print(">> Pivot framing: the crypto VIX / fear gauge (Track 2 allows regime alerts).")
+        print(f">> No credible-sample (n>={MIN_TRADES}) config beats the 0.30% fee.")
+    print(">> Honest verdict either way: the gross edge is real but does NOT robustly")
+    print(">> survive 0.30% BSC cost. Pulse = REGIME / CAPITULATION ALERT (fee-immune),")
+    print(">> not an HFT strategy. Track 2 explicitly allows regime alerts.")
     print("=" * 72)
 
 

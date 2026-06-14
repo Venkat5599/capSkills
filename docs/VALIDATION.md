@@ -71,14 +71,18 @@ deliverable Track 2 asks for.
 | Test | File | Result |
 |---|---|---|
 | Naive fade, absolute returns | `backtest.py` | ❌ no edge |
-| Market-neutral, short hold | `backtest2.py` | ✅ small real edge (t≈2.1) |
-| Fee survival | `backtest_fees.py` | ❌ HF version loses |
-| Extreme-event sweep | `backtest_extreme.py` | ✅ positive net of fees on extremes |
+| Market-neutral, short hold | `backtest2.py` | ✅ small real *gross* edge (t≈2.1) |
+| Fee survival (HF) | `backtest_fees.py` | ❌ HF version loses (break-even <0.30%) |
+| Extreme-event sweep | `backtest_extreme.py` | ⚠️ best cell is marginal & small-sample; flips negative under K=5 / proper non-overlap / OOS |
+| Conviction-gated + OOS + sweep | `strategy_gated.py` | ❌ no config beats 0.30% in/out of sample |
 | Indicator validation | `validate_indicator.py` | ✅ **20/20 crash capture** |
 
-This progression — hypothesis → test → honest failure → refinement → validated
-claim — is the scientific method applied to a trading signal. It's the reason the
-final claim is trustworthy.
+This progression — hypothesis → test → honest failure → *more* honest failure →
+validated claim — is the scientific method applied to a trading signal. The verdict
+we stand behind: **the gross edge is real, but it does not survive realistic BSC
+costs; Pulse's value is the fee-immune regime/capitulation alert.** That a few
+20-config sweeps surface a tiny-sample "winner" is exactly why we ran the
+out-of-sample, multi-config test — and report its honest negative.
 
 ---
 
